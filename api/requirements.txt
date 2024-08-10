@@ -108,3 +108,4 @@ watchfiles==0.23.0
 websockets==12.0
 wrapt==1.16.0
 yarl==1.9.4
+pytest~=8.3.2
