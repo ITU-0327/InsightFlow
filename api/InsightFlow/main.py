@@ -1,4 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi.responses import FileResponse
+from tempfile import NamedTemporaryFile
 from supabase import create_client, Client
 from datetime import datetime, timezone
 from dotenv import load_dotenv
@@ -200,4 +202,42 @@ def delete_file(project_id: str, file_name: str):
         raise e
     except Exception as e:
         # Handle other exceptions
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/projects/{project_id}/files/{file_name}/download/")
+def download_file(project_id: str, file_name: str):
+    """
+    Download a specific file by project ID and file name.
+
+    Args:
+        project_id (str): The ID of the project to which the file belongs.
+        file_name (str): The name of the file to be downloaded.
+
+    Returns:
+        FileResponse: A response containing the file for download.
+
+    Raises:
+        HTTPException: If there is an issue downloading the file from storage.
+    """
+    try:
+        file_path = f"{project_id}/{file_name}"
+
+        # Check if the file exists in Supabase storage
+        try:
+            file_res = supabase.storage.from_("file-storage").download(file_path)
+        except Exception:
+            raise HTTPException(status_code=404, detail="File not found in storage")
+
+        # Use NamedTemporaryFile to store the file temporarily before sending it
+        with NamedTemporaryFile(delete=False) as temp_file:
+            temp_file.write(file_res)
+            temp_file_path = temp_file.name
+
+        return FileResponse(temp_file_path, media_type="application/octet-stream", filename=file_name)
+
+    except HTTPException as e:
+        # Re-raise HTTPExceptions to preserve the status code and message
+        raise e
+    except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
