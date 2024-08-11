@@ -6,6 +6,10 @@ from InsightFlow.main import app
 # Initialize the test client
 client = TestClient(app)
 
+# !! Need to match the project_id in the database as it's a foreign key for the files
+TEST_PROJECT_ID = "f420aa14-a549-4b2e-8499-b1cb113c23fa"
+TEST_FILE_NAME = "test_file.txt"
+
 
 def test_create_project_success():
     response = client.post("/projects/", data={
@@ -39,11 +43,11 @@ def test_get_user_projects():
 
 def test_upload_file_success(tmp_path):
     # Create a temporary file for testing
-    test_file = tmp_path / "test_file.txt"
+    test_file = tmp_path / TEST_FILE_NAME
     test_file.write_text("This is a test file to check if the file correctly update, after the file is uploaded.")
 
     with open(test_file, "rb") as file:
-        response = client.post(f"/projects/29342ce6-6892-468a-aba5-9875911b82cc/files/",
+        response = client.post(f"/projects/{TEST_PROJECT_ID}/files/",
                                files={"file": file})
 
     assert response.status_code == 200
@@ -59,7 +63,7 @@ def test_upload_file_failure():
 
 
 def test_get_project_files():
-    response = client.get("/projects/29342ce6-6892-468a-aba5-9875911b82cc/files/")
+    response = client.get(f"/projects/{TEST_PROJECT_ID}/files/")
     assert response.status_code == 200
     assert isinstance(response.json(), list)  # Expecting a list of files
     if response.json():
@@ -70,11 +74,9 @@ def test_get_project_files():
 
 def test_delete_file_success():
     # Assume there's a file to delete with a known project_id and file_name
-    project_id = "29342ce6-6892-468a-aba5-9875911b82cc"
-    file_name = "test_file.txt"
 
     # Make the DELETE request with project_id and file_name as query parameters
-    response = client.delete("/files/", params={"project_id": project_id, "file_name": file_name})
+    response = client.delete("/files/", params={"project_id": TEST_PROJECT_ID, "file_name": TEST_FILE_NAME})
 
     # Assert the response
     assert response.status_code == 200
@@ -83,11 +85,10 @@ def test_delete_file_success():
 
 def test_delete_file_failure():
     # Attempting to delete a non-existing file
-    project_id = "29342ce6-6892-468a-aba5-9875911b82cc"
-    file_name = "non_existing_file.txt"
+    non_existing_file_name = "non_existing_file.txt"
 
     # Make the DELETE request with project_id and non-existing file_name as query parameters
-    response = client.delete("/files/", params={"project_id": project_id, "file_name": file_name})
+    response = client.delete("/files/", params={"project_id": TEST_PROJECT_ID, "file_name": non_existing_file_name})
 
     # Assert the response
     assert response.status_code == 404  # Expecting a "File not found" error
