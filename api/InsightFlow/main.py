@@ -20,6 +20,21 @@ async def read_root():
 
 @app.post("/create_project/")
 def create_project(user_id: str = Form(...), title: str = Form(...), description: str = Form(...), requirements: str = Form(...)):
+    """
+    Create a new project.
+
+    Args:
+        user_id (str): The ID of the user creating the project.
+        title (str): The title of the project.
+        description (str): A brief description of the project.
+        requirements (str): The requirements or specifications of the project.
+
+    Returns:
+        dict: A message indicating the success of the operation along with the project data.
+
+    Raises:
+        HTTPException: If there is an issue inserting the project into the database.
+    """
     try:
         project = supabase.table("projects").insert(
             {
@@ -31,13 +46,24 @@ def create_project(user_id: str = Form(...), title: str = Form(...), description
         ).execute()
         return {"message": "Project created successfully!", "data": project.data}
     except Exception as e:
-        # Log the actual exception message to diagnose the issue
-        print(f"Exception occurred: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.post("/upload_file/")
 def upload_file(project_id: str = Form(...), file: UploadFile = File(...)):
+    """
+    Upload a file to a specific project.
+
+    Args:
+        project_id (str): The ID of the project to which the file belongs.
+        file (UploadFile): The file to be uploaded.
+
+    Returns:
+        dict: A message indicating the success of the operation along with the public URL of the uploaded file.
+
+    Raises:
+        HTTPException: If there is an issue with saving the file or uploading it to storage.
+    """
     try:
         # Define a unique file path
         file_path = f"{project_id}/{file.filename}"
@@ -62,5 +88,4 @@ def upload_file(project_id: str = Form(...), file: UploadFile = File(...)):
 
         return {"message": "File uploaded successfully!", "file_url": file_url}
     except Exception as e:
-        print(f"Exception occurred: {str(e)}")  # Print the exception for debugging
         raise HTTPException(status_code=400, detail=str(e))
