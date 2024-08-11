@@ -8,7 +8,7 @@ client = TestClient(app)
 
 
 def test_create_project_success():
-    response = client.post("/projects/", data={
+    response = client.post("/api/projects/", data={
         "user_id": "test_user",
         "title": "Test Project",
         "description": "This is a test project description.",
@@ -22,7 +22,7 @@ def test_create_project_success():
 
 def test_create_project_failure():
     # Missing one of the required fields
-    response = client.post("/projects/", data={
+    response = client.post("/api/projects/", data={
         "user_id": "test_user",
         "title": "Test Project",
         "description": "This is a test project description."
@@ -32,7 +32,7 @@ def test_create_project_failure():
 
 
 def test_get_user_projects():
-    response = client.get("/users/test_user/projects/")
+    response = client.get("/api/users/test_user/projects/")
     assert response.status_code == 200
     assert isinstance(response.json(), list)  # Expecting a list of projects
 
@@ -54,12 +54,12 @@ def test_upload_file_success(tmp_path):
 
 def test_upload_file_failure():
     # No file provided
-    response = client.post("/projects/test_project/files/")
+    response = client.post("/api/projects/test_project/files/")
     assert response.status_code == 422  # FastAPI will raise a validation error for missing file
 
 
 def test_get_project_files():
-    response = client.get("/projects/29342ce6-6892-468a-aba5-9875911b82cc/files/")
+    response = client.get("/api/projects/29342ce6-6892-468a-aba5-9875911b82cc/files/")
     assert response.status_code == 200
     assert isinstance(response.json(), list)  # Expecting a list of files
     if response.json():
@@ -74,7 +74,7 @@ def test_delete_file_success():
     file_name = "test_file.txt"
 
     # Make the DELETE request with project_id and file_name as query parameters
-    response = client.delete("/files/", params={"project_id": project_id, "file_name": file_name})
+    response = client.delete("/api/files/", params={"project_id": project_id, "file_name": file_name})
 
     # Assert the response
     assert response.status_code == 200
@@ -87,7 +87,7 @@ def test_delete_file_failure():
     file_name = "non_existing_file.txt"
 
     # Make the DELETE request with project_id and non-existing file_name as query parameters
-    response = client.delete("/files/", params={"project_id": project_id, "file_name": file_name})
+    response = client.delete("/api/files/", params={"project_id": project_id, "file_name": file_name})
 
     # Assert the response
     assert response.status_code == 404  # Expecting a "File not found" error

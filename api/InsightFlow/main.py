@@ -14,7 +14,7 @@ SUPABASE_KEY: str = os.environ.get("PUBLIC_SUPABASE_ANON_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
-@app.post("/projects/")
+@app.post("/api/projects/")
 def create_project(user_id: str = Form(...), title: str = Form(...), description: str = Form(...), requirements: str = Form(...)):
     """
     Create a new project.
@@ -45,7 +45,7 @@ def create_project(user_id: str = Form(...), title: str = Form(...), description
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.get("/users/{user_id}/projects/")
+@app.get("/api/users/{user_id}/projects/")
 def get_user_projects(user_id: str):
     """
     Retrieve all projects for a specific user.
@@ -66,7 +66,7 @@ def get_user_projects(user_id: str):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.post("/projects/{project_id}/files/")
+@app.post("/api/projects/{project_id}/files/")
 def upload_file(project_id: str, file: UploadFile = File(...)):
     """
     Upload a file to a specific project.
@@ -137,7 +137,7 @@ def upload_file(project_id: str, file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.get("/projects/{project_id}/files/")
+@app.get("/api/projects/{project_id}/files/")
 def get_project_files(project_id: str):
     """
     Retrieve all files for a specific project.
@@ -158,7 +158,7 @@ def get_project_files(project_id: str):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.delete("/files/")
+@app.delete("/api/files/")
 def delete_file(project_id: str, file_name: str):
     """
     Delete a specific file by project ID and file name.
