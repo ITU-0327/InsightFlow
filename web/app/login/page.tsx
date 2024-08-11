@@ -1,9 +1,13 @@
-import Link from "next/link";
-import { headers } from "next/headers";
-import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
-import { SubmitButton } from "./submit-button";
-import { BackgroundGradient } from "@/components/ui/background-gradient";
+
+
+import Image from "next/image";
+import RetroGrid from "@/components/magicui/retro-grid";
+import {redirect} from "next/navigation";
+import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
+import {ExclamationTriangleIcon} from "@radix-ui/react-icons";
+import SocialLoginButton from "@/app/login/social-login-button";
+import {createClient} from "@/utils/supabase/server";
+import {Provider} from "@supabase/auth-js";
 
 // export default function Login({
 //   searchParams,
@@ -119,15 +123,66 @@ import { BackgroundGradient } from "@/components/ui/background-gradient";
 //   );
 // }
 
-const Login = () => {
-  return (
-    <div className="flex justify-center items-center h-full w-full">
-      {/* <BackgroundGradient className="rounded-[22px] max-w-sm p-4 sm:p-10 bg-white dark:bg-zinc-900">
-        <div>Hello</div>
-      </BackgroundGradient> */}
-      <BackgroundGradient />
-    </div>
-  )
-}
+
+const Login = ({
+  searchParams,
+}: {
+  searchParams: { message: string };
+}) => {
+    const handleSignInWithOAuth = async (provider: Provider) => {
+        "use server";
+
+        const supabase = createClient();
+
+        const {error} = await supabase.auth.signInWithOAuth({
+            provider: provider,
+        });
+
+        if (error) {
+            redirect("/login?message=unauthorized");
+        }
+
+        return redirect("/protected")
+    };
+
+    return (
+        <div className="flex flex-col justify-center items-center w-full h-dvh relative">
+            <RetroGrid/>
+            <div
+                className="z-10 bg-white flex flex-col border border-solid border-spacing-2 border-zinc-500 p-10 rounded-xl gap-5">
+                <SocialLoginButton provider="Google" handleClick={() => handleSignInWithOAuth("google")} />
+                <button
+                    className="z-10 shadow-[inset_0_0_0_2px_#616467] text-black rounded-full tracking-widest uppercase font-bold bg-transparent hover:bg-[#616467] hover:text-white dark:text-neutral-200 transition duration-200 w-full flex flex-row items-center px-5 py-2.5 gap-5">
+                    <Image
+                        src="/icons/facebook-icon.svg"
+                        width={24}
+                        height={24}
+                        alt="Google's icon"
+                    />
+                    <span className="z-10 text-center w-full">Login with Facebook</span>
+                </button>
+                <button
+                    className="z-10 shadow-[inset_0_0_0_2px_#616467] text-black rounded-full tracking-widest uppercase font-bold bg-transparent hover:bg-[#616467] hover:text-white dark:text-neutral-200 transition duration-200 w-full flex flex-row items-center px-5 py-2.5 gap-5">
+                    <Image
+                        src="/icons/apple-icon.svg"
+                        width={24}
+                        height={24}
+                        alt="Google's icon"
+                    />
+                    <span className="z-10 text-center w-full">Login with Apple</span>
+                </button>
+            </div>
+            {searchParams?.message && (
+                <Alert variant="destructive" className="absolute bottom-5 right-5 w-auto">
+                    <ExclamationTriangleIcon className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>
+                        Something went wrong! We couldn't authenticate you.
+                    </AlertDescription>
+                </Alert>
+            )}
+        </div>
+    );
+};
 
 export default Login;
