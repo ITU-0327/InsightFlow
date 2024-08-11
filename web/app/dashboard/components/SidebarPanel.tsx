@@ -18,13 +18,18 @@ const Logo = () => {
       href="#"
       className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
     >
-      <div className="h-5 w-6 bg-black dark:bg-white rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
+      <div className="h-5 w-6 bg-blue-800 dark:bg-white rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
       <motion.span
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         className="font-medium text-black dark:text-white whitespace-pre"
       >
-        #Project Name
+        <div className="flex items-center">
+          <h1 className="mr-1 text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-purple-500 ">
+            InsightFlow
+          </h1>
+          <IconSparkles className="text-purple-500 " />
+        </div>
       </motion.span>
     </Link>
   );

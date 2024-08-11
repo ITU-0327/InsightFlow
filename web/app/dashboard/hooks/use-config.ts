@@ -1,4 +1,3 @@
-"use client";
 // BACKEND_API_BASE_URL_DEV=http://localhost:8000/api
 export interface ChatConfig {
   backend?: string;

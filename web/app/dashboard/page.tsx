@@ -1,43 +1,45 @@
 "use client";
+
 import { useEffect, useState } from "react";
-import BaseCard from "@/components/ui/card";
+import dynamic from "next/dynamic";
 import Dropzone from "./components/Dropzone";
-import { Project } from "next/dist/build/swc";
 import { getProjects } from "./actions";
+import { Project } from "@/models/Project";
+import React from "react";
+
+// Dynamically import the ProjectCard component with suspense
+const ProjectCard = dynamic(() => import("./components/ProjectCard"), {
+  suspense: true,
+});
 
 const Page = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProject = async () => {
+    const fetchProjects = async () => {
       try {
-        // Replace with your API call
-        const projects = getProjects();
-        setProjects(projects[0]);
+        const userProjects = await getProjects();
+        setProjects(userProjects);
       } catch (error) {
-        console.error("Error fetching project:", error);
+        console.error("Error fetching projects:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProject();
+    fetchProjects();
   }, []);
-
-  if (loading) return <p>Loading...</p>;
 
   return (
     <div className="p-4 w-full">
-      <BaseCard className="mb-6">
-        <h1 className="text-2xl font-bold mb-4">
-          {project?.name || "Project Name"}
-        </h1>
-        <p className="text-gray-700">
-          {project?.description ||
-            "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quam perferendis aliquam minima error illum! Totam neque quis voluptas perspiciatis dolores quia et aperiam incidunt, itaque tempore fugiat nulla pariatur suscipit?"}
-        </p>
-      </BaseCard>
+      <React.Suspense
+        fallback={
+          <div className="w-full h-32 bg-gray-200 animate-pulse rounded-md"></div>
+        }
+      >
+        {projects.length > 0 && <ProjectCard project={projects[0]} />}
+      </React.Suspense>
 
       <Dropzone
         onDrop={(file) => {
@@ -45,7 +47,7 @@ const Page = () => {
           console.log(file);
           // TODO: Implement file upload or processing
         }}
-        text="Drag & drop to upload project description in .pdf here ..."
+        text="Drag & drop to update project description in .pdf here ..."
       />
     </div>
   );

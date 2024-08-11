@@ -14,7 +14,6 @@ export const getProjects = async (
       headers: {
         "Content-Type": "application/json",
       },
-      cache: "no-store", // Adjust caching behavior based on your needs
     });
 
     if (!response.ok) {
