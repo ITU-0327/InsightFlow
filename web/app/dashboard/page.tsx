@@ -1,9 +1,9 @@
 "use client";
 import BaseCard from "@/components/ui/card";
-import { IconCloudUpload, IconUpload } from "@tabler/icons-react";
 import Dropzone from "./components/Dropzone";
 
 const Page = () => {
+  // TODO: GET project
   return (
     <div className="p-4 w-full">
       <BaseCard className="mb-6">

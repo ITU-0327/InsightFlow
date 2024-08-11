@@ -71,9 +71,9 @@ export default function SidebarPanel() {
       ),
     },
   ];
+  // TODO: GET project
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  console.log(pathname);
   return (
     <Sidebar open={open} setOpen={setOpen} animate={false}>
       <SidebarBody className="justify-between gap-10">
