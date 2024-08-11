@@ -1,5 +1,7 @@
+"use client";
 import BaseCard from "@/components/ui/card";
 import { IconCloudUpload, IconUpload } from "@tabler/icons-react";
+import Dropzone from "./components/Dropzone";
 
 const Page = () => {
   return (
@@ -14,13 +16,10 @@ const Page = () => {
         </p>
       </BaseCard>
 
-      {/* Dropzone */}
-      <div className="w-full p-6 border-dashed border-2 border-gray-300 rounded-lg flex items-center justify-center">
-        <IconCloudUpload className="text-gray-600 mr-3" />
-        <p className="text-gray-600">
-          Drag & drop project description in .pdf here
-        </p>
-      </div>
+      <Dropzone
+        onDrop={(file) => console.log(file)}
+        text="Drag & drop to upload project description in .pdf here ..."
+      />
     </div>
   );
 };
