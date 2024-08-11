@@ -4,6 +4,7 @@ import {
   IconArrowLeft,
   IconFolder,
   IconHome2,
+  IconInfinity,
   IconSparkles,
 } from "@tabler/icons-react";
 import Link from "next/link";
@@ -18,7 +19,9 @@ const Logo = () => {
       href="#"
       className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
     >
-      <div className="h-5 w-6 bg-blue-800 dark:bg-white rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
+      <div>
+        <IconInfinity className="mx-1 text-indigo-700" size={30} />
+      </div>
       <motion.span
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -31,16 +34,6 @@ const Logo = () => {
           <IconSparkles className="text-purple-500 " />
         </div>
       </motion.span>
-    </Link>
-  );
-};
-const LogoIcon = () => {
-  return (
-    <Link
-      href="#"
-      className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
-    >
-      <div className="h-5 w-6 bg-black dark:bg-white rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
     </Link>
   );
 };
@@ -80,7 +73,7 @@ export default function SidebarPanel() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   return (
-    <Sidebar open={open} setOpen={setOpen} animate={false}>
+    <Sidebar open={open} setOpen={setOpen} animate={true}>
       <SidebarBody className="justify-between gap-10">
         <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
           <>
@@ -93,8 +86,8 @@ export default function SidebarPanel() {
                 link={link}
                 className={
                   pathname === link.href
-                    ? "bg-zinc-200 p-2 rounded-md"
-                    : "bg-inherit"
+                    ? "bg-zinc-200 rounded-md px-2"
+                    : "bg-inherit px-2"
                 }
               />
             ))}
