@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 import os
 from fastapi.middleware.cors import CORSMiddleware
-
+import re
 
 load_dotenv(".env.local")
 
@@ -24,6 +24,20 @@ SUPABASE_URL: str = os.environ.get("PUBLIC_SUPABASE_URL")
 SUPABASE_KEY: str = os.environ.get("PUBLIC_SUPABASE_ANON_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+def file_name_formatter(file_name: str) -> str:
+    """
+    Format the file name by removing spaces and illegal characters.
+
+    Args:
+        file_name (str): The original file name.
+
+    Returns:
+        str: The formatted file name.
+    """
+    file_name = file_name.strip()
+    file_name = file_name.replace(" ", "_")
+    file_name = re.sub(r'[^\w\-.]', '', file_name)
+    return file_name
 
 @app.post("/api/projects/")
 def create_project(user_id: str = Form(...), title: str = Form(...), description: str = Form(...), requirements: str = Form(...)):
@@ -78,7 +92,7 @@ def get_user_projects(user_id: str):
 
 
 @app.post("/api/projects/{project_id}/files/")
-def upload_file(project_id: str, file: UploadFile = File(...)):
+async def upload_file(project_id: str, file: UploadFile = File(...)):
     """
     Upload a file to a specific project.
 
@@ -93,12 +107,13 @@ def upload_file(project_id: str, file: UploadFile = File(...)):
         HTTPException: If there is an issue with saving the file or uploading it to storage.
     """
     try:
-        # Define a unique file path
-        file_path = f"{project_id}/{file.filename}"
+        formatted_file_name = file_name_formatter(file.filename)
 
-        # Save the file locally first
-        with open(file.filename, "wb") as buffer:
-            buffer.write(file.file.read())
+        # Define a unique file path
+        file_path = f"{project_id}/{formatted_file_name}"
+
+        # Stream the file content directly to Supabase
+        file_content = await file.read()
 
         # Check if the file already exists in the database
         existing_file = supabase.table("files").select("id").eq("project_id", project_id).eq("file_name", file.filename).execute()
@@ -106,14 +121,12 @@ def upload_file(project_id: str, file: UploadFile = File(...)):
         current_time = datetime.now(timezone.utc).isoformat()
 
         if existing_file.data and len(existing_file.data) == 1:
-            # Open the file again to upload it
-            with open(file.filename, "rb") as f:
-                # Upload or update the file in Supabase storage
-                supabase.storage.from_("file-storage").update(
-                    file=f,
-                    path=file_path,
-                    file_options={"cache-control": "3600", "upsert": "true"}
-                )
+            # Upload or update the file in Supabase storage
+            supabase.storage.from_("file-storage").update(
+                file=file_content,
+                path=file_path,
+                file_options={"cache-control": "3600", "upsert": "true"}
+            )
 
             # Get the public URL of the uploaded file
             file_url = supabase.storage.from_("file-storage").get_public_url(file_path)
@@ -126,8 +139,8 @@ def upload_file(project_id: str, file: UploadFile = File(...)):
                 }
             ).eq("id", existing_file.data[0]["id"]).execute()
         else:
-            with open(file.filename, "rb") as f:
-                supabase.storage.from_("file-storage").upload(file=f, path=file_path)
+            # Upload the file to Supabase storage
+            supabase.storage.from_("file-storage").upload(file=file_content, path=file_path)
 
             # Get the public URL of the uploaded file
             file_url = supabase.storage.from_("file-storage").get_public_url(file_path)
@@ -146,7 +159,6 @@ def upload_file(project_id: str, file: UploadFile = File(...)):
         return {"message": "File uploaded successfully!", "file_url": file_url}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
 # @app.post("/api/projects/{project_id}/files/")
 # def upload_project_background_file(project_id: str, file: UploadFile = File(...)):
     
