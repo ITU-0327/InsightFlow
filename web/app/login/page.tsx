@@ -1,183 +1,33 @@
+"use client";
 
-
-import Image from "next/image";
 import RetroGrid from "@/components/magicui/retro-grid";
-import {redirect} from "next/navigation";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
 import {ExclamationTriangleIcon} from "@radix-ui/react-icons";
-import SocialLoginButton from "@/app/login/social-login-button";
-import {createClient} from "@/utils/supabase/server";
-import {Provider} from "@supabase/auth-js";
-
-// export default function Login({
-//   searchParams,
-// }: {
-//   searchParams: { message: string };
-// }) {
-//   const signIn = async (formData: FormData) => {
-//     "use server";
-
-//     const email = formData.get("email") as string;
-//     const password = formData.get("password") as string;
-//     const supabase = createClient();
-
-//     const { error } = await supabase.auth.signInWithPassword({
-//       email,
-//       password,
-//     });
-
-//     if (error) {
-//       return redirect("/login?message=Could not authenticate user");
-//     }
-
-//     return redirect("/protected");
-//   };
-
-//   const signUp = async (formData: FormData) => {
-//     "use server";
-
-//     const origin = headers().get("origin");
-//     const email = formData.get("email") as string;
-//     const password = formData.get("password") as string;
-//     const supabase = createClient();
-
-//     const { error } = await supabase.auth.signUp({
-//       email,
-//       password,
-//       options: {
-//         emailRedirectTo: `${origin}/auth/callback`,
-//       },
-//     });
-
-//     if (error) {
-//       return redirect("/login?message=Could not authenticate user");
-//     }
-
-//     return redirect("/login?message=Check email to continue sign in process");
-//   };
-
-//   return (
-//     <div className="flex-1 flex flex-col w-full px-8 sm:max-w-md justify-center gap-2">
-//       <Link
-//         href="/"
-//         className="absolute left-8 top-8 py-2 px-4 rounded-md no-underline text-foreground bg-btn-background hover:bg-btn-background-hover flex items-center group text-sm"
-//       >
-//         <svg
-//           xmlns="http://www.w3.org/2000/svg"
-//           width="24"
-//           height="24"
-//           viewBox="0 0 24 24"
-//           fill="none"
-//           stroke="currentColor"
-//           strokeWidth="2"
-//           strokeLinecap="round"
-//           strokeLinejoin="round"
-//           className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1"
-//         >
-//           <polyline points="15 18 9 12 15 6" />
-//         </svg>{" "}
-//         Back
-//       </Link>
-
-//       <form className="flex-1 flex flex-col w-full justify-center gap-2 text-foreground">
-//         <label className="text-md" htmlFor="email">
-//           Email
-//         </label>
-//         <input
-//           className="rounded-md px-4 py-2 bg-inherit border mb-6"
-//           name="email"
-//           placeholder="you@example.com"
-//           required
-//         />
-//         <label className="text-md" htmlFor="password">
-//           Password
-//         </label>
-//         <input
-//           className="rounded-md px-4 py-2 bg-inherit border mb-6"
-//           type="password"
-//           name="password"
-//           placeholder="••••••••"
-//           required
-//         />
-//         <SubmitButton
-//           formAction={signIn}
-//           className="bg-green-700 rounded-md px-4 py-2 text-foreground mb-2"
-//           pendingText="Signing In..."
-//         >
-//           Sign In
-//         </SubmitButton>
-//         <SubmitButton
-//           formAction={signUp}
-//           className="border border-foreground/20 rounded-md px-4 py-2 text-foreground mb-2"
-//           pendingText="Signing Up..."
-//         >
-//           Sign Up
-//         </SubmitButton>
-//         {searchParams?.message && (
-//           <p className="mt-4 p-4 bg-foreground/10 text-foreground text-center">
-//             {searchParams.message}
-//           </p>
-//         )}
-//       </form>
-//     </div>
-//   );
-// }
-
+import LoginForm from "@/app/login/login-form";
+import {Button} from "@/components/ui/button";
+import {useRouter} from "next/navigation";
 
 const Login = ({
   searchParams,
 }: {
   searchParams: { message: string };
 }) => {
-    const handleSignInWithOAuth = async (provider: Provider) => {
-        "use server";
-
-        const supabase = createClient();
-
-        const {error} = await supabase.auth.signInWithOAuth({
-            provider: provider,
-        });
-
-        if (error) {
-            redirect("/login?message=unauthorized");
-        }
-
-        return redirect("/protected")
-    };
+    const router = useRouter();
 
     return (
         <div className="flex flex-col justify-center items-center w-full h-dvh relative">
             <RetroGrid/>
             <div
                 className="z-10 bg-white flex flex-col border border-solid border-spacing-2 border-zinc-500 p-10 rounded-xl gap-5">
-                <SocialLoginButton provider="Google" handleClick={() => handleSignInWithOAuth("google")} />
-                <button
-                    className="z-10 shadow-[inset_0_0_0_2px_#616467] text-black rounded-full tracking-widest uppercase font-bold bg-transparent hover:bg-[#616467] hover:text-white dark:text-neutral-200 transition duration-200 w-full flex flex-row items-center px-5 py-2.5 gap-5">
-                    <Image
-                        src="/icons/facebook-icon.svg"
-                        width={24}
-                        height={24}
-                        alt="Google's icon"
-                    />
-                    <span className="z-10 text-center w-full">Login with Facebook</span>
-                </button>
-                <button
-                    className="z-10 shadow-[inset_0_0_0_2px_#616467] text-black rounded-full tracking-widest uppercase font-bold bg-transparent hover:bg-[#616467] hover:text-white dark:text-neutral-200 transition duration-200 w-full flex flex-row items-center px-5 py-2.5 gap-5">
-                    <Image
-                        src="/icons/apple-icon.svg"
-                        width={24}
-                        height={24}
-                        alt="Google's icon"
-                    />
-                    <span className="z-10 text-center w-full">Login with Apple</span>
-                </button>
+                <LoginForm />
+                <Button onClick={() => router.push('/signup')}>Sign up</Button>
             </div>
             {searchParams?.message && (
                 <Alert variant="destructive" className="absolute bottom-5 right-5 w-auto">
                     <ExclamationTriangleIcon className="h-4 w-4" />
                     <AlertTitle>Error</AlertTitle>
                     <AlertDescription>
-                        Something went wrong! We couldn't authenticate you.
+                        {searchParams.message}
                     </AlertDescription>
                 </Alert>
             )}

@@ -1,7 +1,11 @@
 import { cn } from "@/lib/utils";
 import SidebarPanel from "./components/SidebarPanel";
+import {ReactNode} from "react";
+import {useAuth} from "@/app/dashboard/hooks/use-auth";
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout({ children }: { children: ReactNode }) {
+  useAuth();
+
   return (
     <div
       className={cn(
