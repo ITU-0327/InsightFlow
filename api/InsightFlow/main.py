@@ -3,10 +3,21 @@ from supabase import create_client, Client
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 import os
+from fastapi.middleware.cors import CORSMiddleware
+
 
 load_dotenv(".env.local")
 
 app = FastAPI()
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],  # You can restrict methods if needed
+    allow_headers=["*"],  # You can restrict headers if needed
+)
 
 # Initialize Supabase client
 SUPABASE_URL: str = os.environ.get("PUBLIC_SUPABASE_URL")
@@ -136,6 +147,9 @@ def upload_file(project_id: str, file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+# @app.post("/api/projects/{project_id}/files/")
+# def upload_project_background_file(project_id: str, file: UploadFile = File(...)):
+    
 
 @app.get("/api/projects/{project_id}/files/")
 def get_project_files(project_id: str):
