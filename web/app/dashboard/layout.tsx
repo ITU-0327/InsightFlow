@@ -1,10 +1,12 @@
 import { cn } from "@/lib/utils";
 import SidebarPanel from "./components/SidebarPanel";
-import {ReactNode} from "react";
-import {useAuth} from "@/app/dashboard/hooks/use-auth";
+import { ReactNode } from "react";
+import { useAuth } from "@/app/dashboard/hooks/use-auth";
+import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
 
-export default function Layout({ children }: { children: ReactNode }) {
-  useAuth();
+export default async function Layout({ children }: { children: ReactNode }) {
+  await useAuth();
 
   return (
     <div
