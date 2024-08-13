@@ -77,14 +77,14 @@ const LoginForm = () => {
           Email
         </label>
         <input
-          className="rounded-md px-4 py-2 bg-inherit border mb-6"
+          className="rounded-md px-4 py-2 bg-inherit border mb-2"
           name="email"
           placeholder="you@example.com"
           required
         />
       </div>
       <div className="flex flex-col">
-        <label className="text-md" htmlFor="password">
+        <label className="text-md mb-1" htmlFor="password">
           Password
         </label>
         <input
