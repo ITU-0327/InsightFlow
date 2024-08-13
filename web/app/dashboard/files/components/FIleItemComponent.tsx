@@ -40,7 +40,7 @@ const FileItemComponent: React.FC<FileItemProps> = ({
         </div>
       </div>
       <div className="flex-shrink-0 space-x-2">
-        <button onClick={handleDownload} className="text-gray-600">
+        <button onClick={handleDownload} className="text-gray">
           <IconDownload className="w-5 h-5" />
         </button>
         <button

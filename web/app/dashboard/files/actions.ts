@@ -34,6 +34,21 @@ export const getProjectFiles = async (
   }
 };
 
-// export const deleteProjectFile = async(projectId , filename ) => void{
+export const deleteProjectFile = async (
+  projectId: string,
+  filename: string
+): Promise<void> => {
+  const response = await fetch(
+    `${backend}/files/?project_id=${projectId}&file_name=${filename}`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
 
-// }
+  if (!response.ok) {
+    throw new Error(`Failed to delete file: ${response.statusText}`);
+  }
+};

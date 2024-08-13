@@ -1,8 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { ProjectFile } from "./files.model";
-import { getProjectFiles } from "./actions";
-import { IconPdf } from "@tabler/icons-react";
+import { deleteProjectFile, getProjectFiles } from "./actions";
 import { getProjects } from "../actions";
 import FileUploadComponent from "./components/FileUploadComponent";
 import FileItemComponent from "./components/FIleItemComponent";
@@ -32,6 +31,15 @@ const Page = () => {
       console.error("Error fetching projects:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (fileName: string) => {
+    try {
+      await deleteProjectFile(projectId, fileName);
+      await fetchFiles(); // Refresh the file list after deletion
+    } catch (error) {
+      console.error("Error deleting file:", error);
     }
   };
 
@@ -65,7 +73,7 @@ const Page = () => {
           fileName={file.fileName}
           createdDate={file.createdDate.toDateString()}
           fileUrl={file.fileUrl}
-          onDelete={() => {}}
+          onDelete={() => handleDelete(file.fileName)}
         />
       ))}
     </div>

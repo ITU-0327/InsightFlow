@@ -151,7 +151,7 @@ async def upload_file(project_id: str, file: UploadFile = File(...)):
             supabase.table("files").insert(
                 {
                     "project_id": project_id,
-                    "file_name": file.filename,
+                    "file_name": formatted_file_name,
                     "file_url": file_url,
                     "last_update_time": current_time,
                     "created_at": current_time
