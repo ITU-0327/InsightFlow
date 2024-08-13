@@ -7,6 +7,7 @@ import { getProjects } from "./actions";
 import { Project } from "@/models/Project";
 import React from "react";
 import LoadingCard from "@/components/ui/card-loading";
+import { uploadFile } from "./upload-file-helpder";
 
 // Dynamically import the ProjectCard component with suspense
 const ProjectCard = dynamic(() => import("./components/ProjectCard"), {
@@ -19,7 +20,7 @@ const Page = () => {
   const [uploading, setUploading] = useState(false);
   const fetchProjects = async () => {
     try {
-      const userProjects = await getProjects();
+      const userProjects = await getProjects("123");
       setProjects(userProjects);
     } catch (error) {
       console.error("Error fetching projects:", error);
@@ -37,24 +38,7 @@ const Page = () => {
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const projectId = projects[0].id;
-      const response = await fetch(
-        `http://localhost:8000/api/projects/${projectId}/files/`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
-      if (response.ok) {
-        console.log("File uploaded successfully");
-        // Optionally, you could refetch the project or update its state
-      } else {
-        console.error("Failed to upload file");
-      }
+      await uploadFile(file, projects[0].id!);
     } catch (error) {
       console.error("Error uploading file:", error);
     } finally {
