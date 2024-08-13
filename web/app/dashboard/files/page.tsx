@@ -4,13 +4,14 @@ import { ProjectFile } from "./files.model";
 import { getProjectFiles } from "./actions";
 import { IconPdf } from "@tabler/icons-react";
 import { getProjects } from "../actions";
-import FileUploadComponent from "../components/FileUploadComponent";
+import FileUploadComponent from "./components/FileUploadComponent";
+import FileItemComponent from "./components/FIleItemComponent";
+import LoadingCard from "@/components/ui/card-loading";
 
 const Page = () => {
   const [files, setFiles] = useState<ProjectFile[]>([]);
   const [projectId, setProjectId] = useState<string>("");
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
 
   const fetchFiles = async () => {
     try {
@@ -25,6 +26,7 @@ const Page = () => {
       setProjectId(newProjectId);
 
       const projectFiles = await getProjectFiles(newProjectId);
+      console.log(projectFiles);
       setFiles(projectFiles);
     } catch (error) {
       console.error("Error fetching projects:", error);
@@ -38,14 +40,21 @@ const Page = () => {
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <LoadingCard />;
   }
 
   return (
     <div>
-      <IconPdf />
-      {files.length > 0 ? files[0].fileUrl : "No files found"}
-      <FileUploadComponent projectId={projectId} />
+      <FileUploadComponent projectId={projectId} onUploadSuccess={fetchFiles} />
+      {files.map((file, index) => (
+        <FileItemComponent
+          key={index}
+          fileName={file.fileName}
+          createdDate={file.createdDate.toDateString()}
+          fileUrl={file.fileUrl}
+          onDelete={() => {}}
+        />
+      ))}
     </div>
   );
 };
