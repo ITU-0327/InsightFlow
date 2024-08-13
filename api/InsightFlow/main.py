@@ -231,7 +231,7 @@ def delete_file(project_id: str, file_name: str):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.get("/projects/{project_id}/files/{file_name}/download/")
+@app.get("/api/projects/{project_id}/files/{file_name}/download/")
 def download_file(project_id: str, file_name: str):
     """
     Download a specific file by project ID and file name.

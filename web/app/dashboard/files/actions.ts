@@ -52,3 +52,41 @@ export const deleteProjectFile = async (
     throw new Error(`Failed to delete file: ${response.statusText}`);
   }
 };
+
+export const downloadFile = async (projectId: string, fileName: string) => {
+  try {
+    const response = await fetch(
+      `${backend}/projects/${projectId}/files/${fileName}/download/`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to download file: ${response.statusText}`);
+    }
+
+    // Get the filename from the Content-Disposition header, if available
+    const contentDisposition = response.headers.get("Content-Disposition");
+    const suggestedFileName = contentDisposition
+      ? contentDisposition.split("filename=")[1]
+      : fileName;
+
+    const blob = await response.blob();
+
+    //Create a link element, trigger a download, and then remove the link element
+    const link = document.createElement("a");
+    link.href = window.URL.createObjectURL(blob);
+    link.download = suggestedFileName || fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    return blob;
+  } catch (error) {
+    console.error("Error downloading file:", error);
+    throw error;
+  }
+};

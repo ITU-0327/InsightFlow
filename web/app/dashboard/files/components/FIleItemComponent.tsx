@@ -7,6 +7,7 @@ interface FileItemProps {
   createdDate: string;
   fileUrl: string;
   onDelete: (fileName: string) => void;
+  onDownload: (fileName: string) => void;
 }
 
 const FileItemComponent: React.FC<FileItemProps> = ({
@@ -14,9 +15,10 @@ const FileItemComponent: React.FC<FileItemProps> = ({
   createdDate,
   fileUrl,
   onDelete,
+  onDownload,
 }) => {
-  const handleDownload = () => {
-    window.open(fileUrl, "_blank");
+  const handleDownload = async () => {
+    onDownload(fileName);
   };
 
   const handleDelete = () => {
