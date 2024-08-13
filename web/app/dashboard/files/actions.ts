@@ -21,8 +21,13 @@ export const getProjectFiles = async (
       throw new Error(`Failed to fetch files: ${response.statusText}`);
     }
 
-    const files: ProjectFile[] = await response.json();
-    return files;
+    const files = await response.json();
+
+    return files.map((file: any) => ({
+      fileName: file.file_name,
+      fileUrl: file.file_url,
+      createdDate: new Date(file.last_update_time),
+    }));
   } catch (error) {
     console.error("Error fetching projects:", error);
     throw error;
