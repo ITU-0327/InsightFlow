@@ -69,6 +69,7 @@ export default function SidebarPanel() {
       ),
     },
   ];
+  // TODO: GET project
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   return (
