@@ -14,6 +14,9 @@ const Login = ({ searchParams }: { searchParams: { message: string } }) => {
       <RetroGrid />
       <div className="z-10 bg-white flex flex-col border border-solid border-spacing-2 border-zinc-500 p-10 rounded-xl gap-5 w-full max-w-md items-center">
         <Logo />
+        <p className="text-gray-500 text-center">
+          use test@gmail.com and password: test123 to login as a test account
+        </p>
         <LoginForm />
       </div>
       {searchParams?.message && (
