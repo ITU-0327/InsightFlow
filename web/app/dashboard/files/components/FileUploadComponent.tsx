@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { IconCloudUpload, IconLoader } from "@tabler/icons-react";
 import { uploadFile } from "../../upload-file-helpder";
-import { IconCloudUpload } from "@tabler/icons-react";
 
 export default function FileUploadComponent({
   projectId,
@@ -12,6 +12,7 @@ export default function FileUploadComponent({
   onUploadSuccess: () => Promise<void>;
 }) {
   const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState<boolean>(false);
   const [uploadStatus, setUploadStatus] = useState<string>("");
 
   const handleFileChange = async (
@@ -25,6 +26,7 @@ export default function FileUploadComponent({
 
   const handleUpload = async () => {
     if (file) {
+      setUploading(true);
       try {
         const result = await uploadFile(file, projectId);
         setUploadStatus(`File uploaded successfully! URL: ${result}`);
@@ -32,18 +34,24 @@ export default function FileUploadComponent({
       } catch (error) {
         console.log(error);
         setUploadStatus("Failed to upload file.");
+      } finally {
+        setUploading(false);
       }
     }
   };
 
   return (
     <div>
-      <label className="flex bg-gray-800 hover:bg-gray-700 text-white text-base px-5 py-3 outline-none rounded w-max cursor-pointer mx-auto font-[sans-serif]">
-        <IconCloudUpload className="mr-2" />
-        Upload File
+      <label className="flex items-center bg-gray-800 hover:bg-gray-700 text-white text-base px-5 py-3 outline-none rounded w-max cursor-pointer font-[sans-serif]">
+        {uploading ? (
+          <IconLoader className="animate-spin mr-2" />
+        ) : (
+          <IconCloudUpload className="mr-2" />
+        )}
+        {uploading ? "Uploading..." : "Upload File"}
         <input
           type="file"
-          id="uploadFile1"
+          id="uploadFile"
           className="hidden"
           onChange={handleFileChange}
         />

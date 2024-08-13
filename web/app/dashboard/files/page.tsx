@@ -44,8 +44,21 @@ const Page = () => {
   }
 
   return (
-    <div>
-      <FileUploadComponent projectId={projectId} onUploadSuccess={fetchFiles} />
+    <div className="w-full max-w-6xl">
+      <div className="w-full p-3 flex justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Files</h1>
+          <h2 className="text-md text-gray-700">
+            Upload your files here to be used for analysis , can be in .pdf .csv{" "}
+          </h2>
+        </div>
+
+        <FileUploadComponent
+          projectId={projectId}
+          onUploadSuccess={fetchFiles}
+        />
+      </div>
+
       {files.map((file, index) => (
         <FileItemComponent
           key={index}
