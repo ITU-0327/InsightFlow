@@ -3,14 +3,28 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 
-export const useAuth = async (): Promise<void> => {
+interface AuthData {
+  userId: string;
+  email: string | undefined;
+}
+
+export const useAuth = async (): Promise<AuthData | void> => {
   const supabase = createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  console.log(user);
+  // Get the authenticated user
+  const { data } = await supabase.auth.getUser();
+
+  const user = data.user;
+
+  // If no user is authenticated, redirect to the login page
   if (!user) {
-    return redirect("/login");
+    redirect("/login");
+    return;
   }
+
+  // Return user ID, email, and the logout function
+  return {
+    userId: user.id,
+    email: user.email,
+  };
 };

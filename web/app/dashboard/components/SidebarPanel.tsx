@@ -2,16 +2,22 @@
 import React, { useState } from "react";
 import {
   IconArrowLeft,
+  IconDoorExit,
   IconFolder,
   IconHome2,
   IconInfinity,
+  IconLogout,
+  IconLogout2,
   IconSparkles,
+  IconUserCircle,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
-import { usePathname } from "next/navigation";
+import { redirect, usePathname } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
+import { logOut } from "../actions";
 
 const Logo = () => {
   return (
@@ -38,7 +44,7 @@ const Logo = () => {
   );
 };
 
-export default function SidebarPanel() {
+export default function SidebarPanel({ userEmail }: { userEmail: string }) {
   const links = [
     {
       label: "Overview",
@@ -61,20 +67,13 @@ export default function SidebarPanel() {
         <IconSparkles className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
-    {
-      label: "Logout",
-      href: "#",
-      icon: (
-        <IconArrowLeft className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
-      ),
-    },
   ];
   // TODO: GET project
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   return (
     <Sidebar open={open} setOpen={setOpen} animate={true}>
-      <SidebarBody className="justify-between gap-10">
+      <SidebarBody className="justify-between gap-8">
         <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
           <>
             <Logo />
@@ -93,23 +92,23 @@ export default function SidebarPanel() {
             ))}
           </div>
         </div>
-        <div>
-          <SidebarLink
-            link={{
-              label: "Username",
-              href: "#",
-              icon: (
-                <Image
-                  src=""
-                  className="h-7 w-7 flex-shrink-0 rounded-full"
-                  width={50}
-                  height={50}
-                  alt="Avatar"
-                />
-              ),
-            }}
-          />
-        </div>
+        <form action={logOut}>
+          <button
+            type="submit"
+            className="mx-2 rounded-md no-underline text-sm flex items-center gap-2"
+          >
+            <IconLogout2 className="h-5 w-5" />
+            {open ? "Logout" : ""}
+          </button>
+        </form>
+        <SidebarLink
+          link={{
+            label: userEmail,
+            href: "#",
+            icon: <IconUserCircle />,
+          }}
+          className="mx-2"
+        />
       </SidebarBody>
     </Sidebar>
   );
