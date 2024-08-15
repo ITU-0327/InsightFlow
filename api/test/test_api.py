@@ -1,3 +1,4 @@
+import os
 from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 load_dotenv("../.env.local")
@@ -50,6 +51,8 @@ def test_upload_file_success(tmp_path):
     with open(test_file, "rb") as file:
         response = client.post(f"/projects/{TEST_PROJECT_ID}/files/",
                                files={"file": file})
+
+    os.remove(TEST_FILE_NAME)
 
     assert response.status_code == 200
     assert "message" in response.json()
