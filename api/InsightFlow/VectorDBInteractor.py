@@ -1,20 +1,17 @@
 import shutil
+from tempfile import gettempdir
 from typing import List
+from urllib.parse import urlparse
 
 import aiohttp
 from supabase import Client
 import os
-import requests
 from llama_index.readers.file import PDFReader, CSVReader
 from llama_index.program.openai import OpenAIPydanticProgram
 from llama_index.core.extractors import PydanticProgramExtractor
 from llama_index.core import SimpleDirectoryReader
 from pydantic import BaseModel, Field
-import nest_asyncio
-from llama_index.core import VectorStoreIndex, get_response_synthesizer , StorageContext
-from llama_index.core.retrievers import VectorIndexRetriever
-from llama_index.core.query_engine import RetrieverQueryEngine
-from llama_index.core.postprocessor import SimilarityPostprocessor
+from llama_index.core import VectorStoreIndex, StorageContext
 from llama_index.vector_stores.supabase import SupabaseVectorStore
 from llama_index.core.ingestion import IngestionPipeline
 from dotenv import load_dotenv
@@ -33,7 +30,6 @@ class NodeMetadata(BaseModel):
         description="Whether the text chunk is suitable to build a customer persona for UX research",
     )
 
-
 class VectorDBInteractor:
 
     def __init__(self, supabase_client: Client):
@@ -41,7 +37,7 @@ class VectorDBInteractor:
             self.supabase_client = supabase_client
             self.initialized = True
 
-    async def ingest_data(self, urls: List[str], project_id: str):
+    async def ingest_data(self, urls: List[str], project_id:str):
         yield "Started processing data"
         load_dotenv(".env.local")
         SUPABASE_DB_CONN: str = os.environ.get("PUBLIC_SUPABASE_DB_CONN_URL")
@@ -76,16 +72,16 @@ class VectorDBInteractor:
         program_extractor = PydanticProgramExtractor(
             program=openai_program, input_key="input", show_progress=True
         )
-        #
+
         vector_store = SupabaseVectorStore(
             postgres_connection_string=(
                 SUPABASE_DB_CONN
             ),
-            collection_name=project_id,  # Project ID
+            collection_name=project_id, # Project ID
         )
         #
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
-        #
+
         pipeline = IngestionPipeline(
             transformations=[
                 program_extractor
@@ -94,14 +90,9 @@ class VectorDBInteractor:
 
         yield "Extracting Insights ... this might take a while"
         print("running pipeline")
-        nodes = pipeline.run(documents=downloaded_documents)  # MAX content length exceeded ERROR
-
-        index = VectorStoreIndex(
-            nodes,
-            storage_context=storage_context,
-            show_progress=True,
-            use_async=True,
-        )
+        docs = await pipeline.arun(documents=downloaded_documents, num_workers=4)
+        print("building index")
+        VectorStoreIndex.from_documents(docs,storage_context, show_progress=True)
 
         yield "Preparing insights"
 
@@ -112,7 +103,9 @@ class VectorDBInteractor:
         yield f"{"nodes"} Insights ready"
 
     async def _download_file(self, url: str, dest_folder: str):
-        filename = url.split('/')[-1].replace(" ", "_")
+        parsed_url = urlparse(url)
+        clean_url = parsed_url._replace(query="").geturl()
+        filename = clean_url.split('/')[-1].replace(" ", "_")
         file_path = os.path.join(dest_folder, filename)
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as r:
