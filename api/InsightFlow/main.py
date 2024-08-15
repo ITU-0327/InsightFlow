@@ -1,4 +1,5 @@
 import logging
+from urllib.parse import urlparse
 
 import aiohttp
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
@@ -82,6 +83,7 @@ class VectorDBInteractor:
         os.makedirs(ingestion_path, exist_ok=True)
         for url in urls:
             await self._download_file(url, ingestion_path)
+        # await self._download_file("https://aijhishknsqntpzzthuf.supabase.co/storage/v1/object/public/file-storage/8a95c770-8f11-4b59-ad57-30954fb1e2e4/Cuppabun_Responses_-_Form_responses_1.csv", ingestion_path)
         print("extracting file .....")
         file_extractor = {".pdf": PDFReader(), ".csv": CSVReader(concat_rows=False)}
         downloaded_documents = SimpleDirectoryReader(
@@ -97,17 +99,17 @@ class VectorDBInteractor:
         Given the contextual information, extract out a {class_name} object.\
         """
 
-        # openai_program = OpenAIPydanticProgram.from_defaults(
-        #     output_cls=NodeMetadata,
-        #     prompt_template_str="{input}",
-        #     extract_template_str=EXTRACT_TEMPLATE_STR,
-        #     description="Program to extract metadata from documents based on NodeMetadata model."
-        # )
-        # #
-        # program_extractor = PydanticProgramExtractor(
-        #     program=openai_program, input_key="input", show_progress=True
-        # )
+        openai_program = OpenAIPydanticProgram.from_defaults(
+            output_cls=NodeMetadata,
+            prompt_template_str="{input}",
+            extract_template_str=EXTRACT_TEMPLATE_STR,
+            description="Program to extract metadata from documents based on NodeMetadata model."
+        )
         #
+        program_extractor = PydanticProgramExtractor(
+            program=openai_program, input_key="input", show_progress=True
+        )
+
         vector_store = SupabaseVectorStore(
             postgres_connection_string=(
                 SUPABASE_DB_CONN
@@ -116,26 +118,19 @@ class VectorDBInteractor:
         )
         #
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
-        #
-        # pipeline = IngestionPipeline(
-        #     transformations=[
-        #         program_extractor
-        #     ],
-        # )
+
+        pipeline = IngestionPipeline(
+            transformations=[
+                program_extractor
+            ],
+        )
 
         yield "Extracting Insights ... this might take a while"
         print("running pipeline")
-        # nodes = pipeline.run(documents=downloaded_documents) # MAX content length exceeded ERROR
-
-        # index = VectorStoreIndex(
-        #     nodes,
-        #     storage_context=storage_context,
-        #     show_progress=True,
-        #     use_async=True,
-        # )
+        docs = await pipeline.arun(documents=downloaded_documents, num_workers=4)
 
         # WITHOUT PIPELINE & METADATA EXTRACTION
-        index = VectorStoreIndex.from_documents(downloaded_documents,storage_context)
+        index = VectorStoreIndex.from_documents(docs,storage_context, show_progress=True)
 
         yield "Preparing insights"
 
@@ -146,7 +141,9 @@ class VectorDBInteractor:
         yield f"{"nodes"} Insights ready"
 
     async def _download_file(self, url: str, dest_folder: str):
-        filename = url.split('/')[-1].replace(" ", "_")
+        parsed_url = urlparse(url)
+        clean_url = parsed_url._replace(query="").geturl()
+        filename = clean_url.split('/')[-1].replace(" ", "_")
         file_path = os.path.join(dest_folder, filename)
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as r:
@@ -427,12 +424,7 @@ async def ingest_data(request: Request, project_id: str):
             yield f"data: {message}\n\n"
             
     return StreamingResponse(event_generator())
-    
-    # return file_urls
-    # # Check if the client is still connected
-    # async def event_generator():
-    #     async for message in vector_db_interactor.ingest_data(urls, project_id):
-    #         if await request.is_disconnected():
-    #             break
-    #         yield f"data: {message}\n\n"
+
+    # mark all files as ingested
+
 
