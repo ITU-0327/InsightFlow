@@ -23,7 +23,7 @@ class NodeMetadata(BaseModel):
         ..., description="A category of the text chunk, can ONLY be one of ['pain points','behaviour','goals','demographics']"
     )
     summary: str = Field(
-        ..., description="A short summary of the text chunk no longer than 50 words"
+        ..., description="A short summary of the text chunk no longer than 20 words"
     )
     suitable_for_persona: bool = Field(
         ...,
@@ -91,8 +91,10 @@ class VectorDBInteractor:
         yield "Extracting Insights ... this might take a while"
         print("running pipeline")
         docs = await pipeline.arun(documents=downloaded_documents, num_workers=4)
+
         print("building index")
-        VectorStoreIndex.from_documents(docs,storage_context, show_progress=True)
+        # WITHOUT PIPELINE & METADATA EXTRACTION
+        index = VectorStoreIndex.from_documents(docs,storage_context, show_progress=True)
 
         yield "Preparing insights"
 

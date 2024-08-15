@@ -1,10 +1,6 @@
-import logging
-from urllib.parse import urlparse
-
-import aiohttp
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import FileResponse
-from tempfile import NamedTemporaryFile, gettempdir
+from tempfile import NamedTemporaryFile
 from supabase import create_client, Client
 from datetime import datetime, timezone
 from dotenv import load_dotenv
@@ -12,25 +8,7 @@ import os
 from fastapi.middleware.cors import CORSMiddleware
 import re
 from starlette.responses import StreamingResponse
-# from VectorDBInteractor import VectorDBInteractor
-
-import shutil
-from typing import List
-from supabase import Client
-import os
-import requests
-from llama_index.readers.file import PDFReader, CSVReader
-from llama_index.program.openai import OpenAIPydanticProgram
-from llama_index.core.extractors import PydanticProgramExtractor
-from llama_index.core import SimpleDirectoryReader
-from pydantic import BaseModel, Field
-import nest_asyncio
-from llama_index.core import VectorStoreIndex, get_response_synthesizer , StorageContext
-from llama_index.core.retrievers import VectorIndexRetriever
-from llama_index.core.query_engine import RetrieverQueryEngine
-from llama_index.core.postprocessor import SimilarityPostprocessor
-from llama_index.vector_stores.supabase import SupabaseVectorStore
-from llama_index.core.ingestion import IngestionPipeline
+from InsightFlow.VectorDBInteractor import VectorDBInteractor
 
 load_dotenv(".env.local")
 
@@ -51,116 +29,8 @@ app.add_middleware(
     allow_headers=["*"],  # You can restrict headers if needed
 )
 
-# cannot import so I moved the whole thing
-class NodeMetadata(BaseModel):
-    """Model representing metadata extracted from the document."""
 
-    tags: List[str] = Field(
-        ..., description="A category of the text chunk, can ONLY be one of ['pain points','behaviour','goals','demographics']"
-    )
-    summary: str = Field(
-        ..., description="A short summary of the text chunk no longer than 50 words"
-    )
-    suitable_for_persona: bool = Field(
-        ...,
-        description="Whether the text chunk is suitable to build a customer persona for UX research",
-    )
-
-class VectorDBInteractor:
-
-    def __init__(self, supabase_client: Client):
-        if not hasattr(self, 'initialized'):
-            self.supabase_client = supabase_client
-            self.initialized = True
-
-    async def ingest_data(self, urls: List[str], project_id:str):
-        yield "Started processing data"
-        load_dotenv(".env.local")
-        SUPABASE_DB_CONN: str = os.environ.get("PUBLIC_SUPABASE_DB_CONN_URL")
-        # LOADING
-        ingestion_path = os.path.join(gettempdir(), 'ingestion_data')
-        print(ingestion_path)
-        os.makedirs(ingestion_path, exist_ok=True)
-        for url in urls:
-            await self._download_file(url, ingestion_path)
-        # await self._download_file("https://aijhishknsqntpzzthuf.supabase.co/storage/v1/object/public/file-storage/8a95c770-8f11-4b59-ad57-30954fb1e2e4/Cuppabun_Responses_-_Form_responses_1.csv", ingestion_path)
-        print("extracting file .....")
-        file_extractor = {".pdf": PDFReader(), ".csv": CSVReader(concat_rows=False)}
-        downloaded_documents = SimpleDirectoryReader(
-            ingestion_path, file_extractor=file_extractor
-        ).load_data()
-
-        # METADATA EXTRACTION
-        EXTRACT_TEMPLATE_STR = """\
-        Here is the content of the section please adhere to keywords like `ONLY`:
-        ----------------
-        {context_str}
-        ----------------
-        Given the contextual information, extract out a {class_name} object.\
-        """
-
-        openai_program = OpenAIPydanticProgram.from_defaults(
-            output_cls=NodeMetadata,
-            prompt_template_str="{input}",
-            extract_template_str=EXTRACT_TEMPLATE_STR,
-            description="Program to extract metadata from documents based on NodeMetadata model."
-        )
-        #
-        program_extractor = PydanticProgramExtractor(
-            program=openai_program, input_key="input", show_progress=True
-        )
-
-        vector_store = SupabaseVectorStore(
-            postgres_connection_string=(
-                SUPABASE_DB_CONN
-            ),
-            collection_name=project_id, # Project ID
-        )
-        #
-        storage_context = StorageContext.from_defaults(vector_store=vector_store)
-
-        pipeline = IngestionPipeline(
-            transformations=[
-                program_extractor
-            ],
-        )
-
-        yield "Extracting Insights ... this might take a while"
-        print("running pipeline")
-        docs = await pipeline.arun(documents=downloaded_documents, num_workers=4)
-
-        # WITHOUT PIPELINE & METADATA EXTRACTION
-        index = VectorStoreIndex.from_documents(docs,storage_context, show_progress=True)
-
-        yield "Preparing insights"
-
-        # remove all locally stored data & cleanup
-        # Cleanup
-        shutil.rmtree(ingestion_path)
-        print("deleted", ingestion_path)
-        yield f"{"nodes"} Insights ready"
-
-    async def _download_file(self, url: str, dest_folder: str):
-        parsed_url = urlparse(url)
-        clean_url = parsed_url._replace(query="").geturl()
-        filename = clean_url.split('/')[-1].replace(" ", "_")
-        file_path = os.path.join(dest_folder, filename)
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as r:
-                r.raise_for_status()
-                with open(file_path, 'wb') as f:
-                    while True:
-                        chunk = await r.content.read(1024 * 8)
-                        if not chunk:
-                            break
-                        f.write(chunk)
-                        f.flush()
-                        os.fsync(f.fileno())
-
-
-# Init VectorDBInteractor
 vector_db_interactor = VectorDBInteractor(supabase_client=supabase)
-
 
 def file_name_formatter(file_name: str) -> str:
     """
@@ -422,9 +292,9 @@ async def ingest_data(request: Request, project_id: str):
             if await request.is_disconnected():
                 break
             yield f"data: {message}\n\n"
-            
-    return StreamingResponse(event_generator())
 
-    # mark all files as ingested
+    # TODO: mark all files as ingested
+    # supabase.table("files").select("file_url").eq("project_id", project_id).eq("ingested", true).execute()
+    return StreamingResponse(event_generator())
 
 
