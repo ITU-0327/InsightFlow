@@ -1,7 +1,7 @@
+from InsightFlow.main import app
 from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 load_dotenv("../.env.local")
-from InsightFlow.main import app
 
 # Initialize the test client
 client = TestClient(app)

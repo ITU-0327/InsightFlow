@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import FileResponse
 from tempfile import NamedTemporaryFile
 from supabase import create_client, Client
@@ -7,24 +7,30 @@ from dotenv import load_dotenv
 import os
 from fastapi.middleware.cors import CORSMiddleware
 import re
+from starlette.responses import StreamingResponse
+# from VectorDBInteractor import VectorDBInteractor
 
 load_dotenv(".env.local")
+
+# Initialize Supabase client
+SUPABASE_URL: str = os.environ.get("PUBLIC_SUPABASE_URL")
+SUPABASE_KEY: str = os.environ.get("PUBLIC_SUPABASE_ANON_KEY")
+FRONTEND_HOST: str = os.environ.get("FRONTEND_HOST_URL")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = FastAPI()
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Frontend URL
+    allow_origins=[FRONTEND_HOST],  # Frontend URL
     allow_credentials=True,
     allow_methods=["*"],  # You can restrict methods if needed
     allow_headers=["*"],  # You can restrict headers if needed
 )
 
-# Initialize Supabase client
-SUPABASE_URL: str = os.environ.get("PUBLIC_SUPABASE_URL")
-SUPABASE_KEY: str = os.environ.get("PUBLIC_SUPABASE_ANON_KEY")
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+# Init VectorDBInteractor
+# vector_db_interactor = VectorDBInteractor(supabase_client=supabase)
 
 def file_name_formatter(file_name: str) -> str:
     """
@@ -267,3 +273,25 @@ def download_file(project_id: str, file_name: str):
         raise e
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/api/projects/{project_id}/ingest/")
+async def ingest_data(request: Request, project_id: str):
+
+    # Fetch file URLs
+    file_urls = []
+    try:
+        files = supabase.table("files").select("file_url").eq("project_id", project_id).eq("ingested",False).execute()
+        file_urls = [file['file_url'] for file in files.data]
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return file_urls
+    # Check if the client is still connected
+    async def event_generator():
+        async for message in vector_db_interactor.ingest_data(urls, project_id):
+            if await request.is_disconnected():
+                break
+            yield f"data: {message}\n\n"
+    
+    return StreamingResponse(event_generator())
