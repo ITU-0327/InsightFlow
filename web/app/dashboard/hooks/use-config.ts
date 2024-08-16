@@ -5,7 +5,6 @@ export interface ChatConfig {
 }
 
 export function useClientConfig(): ChatConfig {
-  const backendAPI = process.env.BACKEND_API_BASE_URL_DEV;
   //   const [config, setConfig] = useState<ChatConfig>();
 
   //   const backendOrigin = useMemo(() => {
@@ -20,8 +19,7 @@ export function useClientConfig(): ChatConfig {
   //       .then((data) => setConfig({ ...data, chatAPI }))
   //       .catch((error) => console.error("Error fetching config", error));
   //   }, [chatAPI, configAPI]);
-
   return {
-    backend: backendAPI,
+    backend: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api",
   };
 }
