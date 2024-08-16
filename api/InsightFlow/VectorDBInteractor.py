@@ -111,7 +111,7 @@ class VectorDBInteractor:
         # Cleanup
         shutil.rmtree(ingestion_path)
         print("deleted", ingestion_path)
-        yield f"{"nodes"} Insights ready"
+        yield f"{len(docs)} Insights ready"
 
     async def rag_query(self, query: str, project_id: str, filters: Optional[Dict[str, str]] = None):
         # https://docs.llamaindex.ai/en/stable/examples/vector_stores/Qdrant_metadata_filter/
@@ -147,7 +147,7 @@ class VectorDBInteractor:
         streaming_response = query_engine.query(query)
         return streaming_response
 
-    def search(self, project_id: str, query: Dict[str, str] = None, count: int = 10):
+    def search(self, project_id: str, query: Dict[str, str] = None, count: int = 40):
         """
         Searches the Supabase table for entries matching the query/filter criteria.
 
@@ -166,7 +166,7 @@ class VectorDBInteractor:
             .schema("vecs")
             .from_(project_id)
             .select(
-                "id, vec, metadata->>summary, metadata->tags, metadata->theme, metadata->persona_id, "
+                "id, vec, metadata->>note, metadata->tags, metadata->theme, metadata->persona_id, "
                 "metadata->>file_name, metadata->>suitable_for_persona, "
                 "metadata->_node_content"
             )
@@ -187,7 +187,7 @@ class VectorDBInteractor:
 
             # Print and return the data
             data = response.data
-            print(f"Data: {data}")
+            # print(f"Data: {data}")
             return data
 
         except Exception as e:
