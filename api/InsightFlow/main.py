@@ -1,3 +1,5 @@
+from typing import Dict, Optional
+
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import FileResponse
 from tempfile import NamedTemporaryFile
@@ -9,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import re
 from starlette.responses import StreamingResponse
 from InsightFlow.VectorDBInteractor import VectorDBInteractor
-
+# from VectorDBInteractor import VectorDBInteractor
 load_dotenv(".env.local")
 
 # Initialize Supabase client
@@ -275,7 +277,7 @@ def download_file(project_id: str, file_name: str):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.get("/api/projects/{project_id}/ingest/")
+@app.post("/api/projects/{project_id}/ingest/")
 async def ingest_data(request: Request, project_id: str):
 
     # Fetch file URLs
@@ -298,3 +300,27 @@ async def ingest_data(request: Request, project_id: str):
     return StreamingResponse(event_generator())
 
 
+@app.post("/api/projects/{project_id}/themes/")
+def create_theme_insights(project_id: str):
+    # Fetch relevant data
+    try:
+        # Filter necessary data
+        filtered_data = vector_db_interactor.search(project_id)
+        # Load it to memory as a pandas dataframe
+        # Run clustering algo
+        # Pick the right k
+        # Update Vector DB metadata
+        return filtered_data # TODO: always return null for some reason
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+
+@app.post("/api/projects/{project_id}/rag_chat/") # for chatting with persona & themes
+async def rag_chat(project_id: str, query: str, filters: Optional[Dict[str,str]] = None):
+    try:
+        # TODO: need to make it streamable
+        response_stream = await vector_db_interactor.rag_query(query, project_id, filters)
+        return response_stream
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
