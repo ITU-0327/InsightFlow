@@ -1,6 +1,7 @@
 "use server";
 
 import { useClientConfig } from "../hooks/use-config";
+import { ChatResponse } from "./ask/ChatResponse.model";
 import { InsightNote } from "./insight.model";
 
 const { backend } = useClientConfig();
@@ -39,6 +40,8 @@ export const getProjectInsights = async (
 };
 
 export const generateInsights = async (project_id: string) => {
+  const { backend } = useClientConfig();
+
   const response = await fetch(`${backend}/projects/${project_id}/ingest/`, {
     method: "POST",
     headers: {
@@ -49,3 +52,41 @@ export const generateInsights = async (project_id: string) => {
     throw new Error(`Failed to start ingestion: ${response.statusText}`);
   }
 };
+
+export async function ragChatAction(
+  projectId: string,
+  query: string,
+  filters: Record<string, string> | null = null
+) {
+  const { backend } = useClientConfig();
+  try {
+    const encodedQuery = encodeURIComponent(query);
+
+    const response = await fetch(
+      `${backend}/projects/${projectId}/rag_chat/?query=${encodedQuery}`,
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        //   body: JSON.stringify(data),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    const chatResponse: ChatResponse = {
+      metadata: data.metadata,
+      response: data.response,
+    };
+    return chatResponse;
+  } catch (error) {
+    console.error("Error in ragChatAction:", error);
+    throw error;
+  }
+}

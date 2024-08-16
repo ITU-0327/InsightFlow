@@ -14,6 +14,7 @@
     "@supabase/supabase-js": "^2.45.1",
     "@tabler/icons-react": "^3.12.0",
     "autoprefixer": "10.4.17",
+    "axios": "^1.7.4",
     "class-variance-authority": "^0.7.0",
     "geist": "^1.2.1",
     "lucide-react": "^0.427.0",

@@ -18,7 +18,6 @@ const NoteCard: React.FC<NoteCardProps> = ({ note }) => {
   const [isModalOpen, setModalOpen] = useState<boolean>(false);
 
   const handleViewClick = () => {
-    copyToClipboard(note.note);
     setModalOpen(true); // Open the modal when copying
   };
 
@@ -62,6 +61,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note }) => {
           className={`${copied ? "bg-purple-500" : "bg-purple-100"} ${
             copied ? "text-purple-100" : "text-purple-500"
           } px-2 py-1 font-medium text-xs rounded-md flex items-center space-x-1`}
+          onClick={() => copyToClipboard(note.note)}
         >
           {copied ? <IconCopyCheck size={16} /> : <IconCopy size={16} />}
           <span>{copied ? "Copied!" : "Copy Note"}</span>
