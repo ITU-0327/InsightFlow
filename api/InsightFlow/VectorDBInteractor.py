@@ -2,10 +2,8 @@ import os
 import shutil
 from tempfile import gettempdir
 from typing import List, Optional, Dict
-from urllib.parse import urlparse
 from supabase import Client
 
-import aiohttp
 from llama_index.core.ingestion import IngestionPipeline
 from llama_index.core.query_engine import RetrieverQueryEngine
 from llama_index.core.extractors import PydanticProgramExtractor
@@ -16,6 +14,7 @@ from llama_index.program.openai import OpenAIPydanticProgram
 from llama_index.vector_stores.supabase import SupabaseVectorStore
 
 from pydantic import BaseModel, Field
+from InsightFlow.utils import _download_file
 
 from dotenv import load_dotenv
 
@@ -55,7 +54,7 @@ class VectorDBInteractor:
         print(ingestion_path)
         os.makedirs(ingestion_path, exist_ok=True)
         for url in urls:
-            await self._download_file(url, ingestion_path)
+            await _download_file(url, ingestion_path)
         print("extracting file .....")
         file_extractor = {".pdf": PDFReader(), ".csv": CSVReader(concat_rows=False)}
         downloaded_documents = SimpleDirectoryReader(
@@ -198,21 +197,3 @@ class VectorDBInteractor:
 
     async def delete(self, project_id: str, filename: str):
         pass
-
-    @staticmethod
-    async def _download_file(url: str, dest_folder: str):
-        parsed_url = urlparse(url)
-        clean_url = parsed_url._replace(query="").geturl()
-        filename = clean_url.split('/')[-1].replace(" ", "_")
-        file_path = os.path.join(dest_folder, filename)
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as r:
-                r.raise_for_status()
-                with open(file_path, 'wb') as f:
-                    while True:
-                        chunk = await r.content.read(1024 * 8)
-                        if not chunk:
-                            break
-                        f.write(chunk)
-                        f.flush()
-                        os.fsync(f.fileno())
