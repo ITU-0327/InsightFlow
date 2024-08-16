@@ -8,6 +8,7 @@ import { Project } from "@/models/Project";
 import React from "react";
 import LoadingCard from "@/components/ui/card-loading";
 import { uploadFile } from "./upload-file-helpder";
+import { useAuth } from "./hooks/use-auth";
 
 // Dynamically import the ProjectCard component with suspense
 const ProjectCard = dynamic(() => import("./components/ProjectCard"), {
@@ -18,9 +19,11 @@ const Page = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+
   const fetchProjects = async () => {
     try {
-      const userProjects = await getProjects("123");
+      const auth = await useAuth();
+      const userProjects = await getProjects(auth?.userId);
       setProjects(userProjects);
     } catch (error) {
       console.error("Error fetching projects:", error);

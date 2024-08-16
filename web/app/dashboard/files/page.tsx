@@ -6,6 +6,7 @@ import { getProjects } from "../actions";
 import FileUploadComponent from "./components/FileUploadComponent";
 import FileItemComponent from "./components/FIleItemComponent";
 import LoadingCard from "@/components/ui/card-loading";
+import { useAuth } from "../hooks/use-auth";
 
 const Page = () => {
   const [files, setFiles] = useState<ProjectFile[]>([]);
@@ -14,7 +15,8 @@ const Page = () => {
 
   const fetchFiles = async () => {
     try {
-      const projects = await getProjects();
+      const auth = await useAuth();
+      const projects = await getProjects(auth?.userId);
       if (projects.length === 0) {
         console.log("No projects found");
         setLoading(false);

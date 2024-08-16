@@ -6,6 +6,8 @@ import { InsightNote } from "./insight.model";
 import NoteCard from "./components/NoteCard";
 import { MasonryLayout } from "./components/MasonryLayout";
 import { revalidatePath } from "next/cache";
+import LoadingCard from "@/components/ui/card-loading";
+import { useAuth } from "../hooks/use-auth";
 
 const Page = () => {
   const [loading, setLoading] = useState(false);
@@ -13,7 +15,8 @@ const Page = () => {
 
   async function fetchInsights() {
     setLoading(true);
-    const projects = await getProjects();
+    const auth = await useAuth();
+    const projects = await getProjects(auth?.userId);
     if (projects.length === 0) {
       console.log("No projects found");
       setLoading(false);
@@ -32,7 +35,16 @@ const Page = () => {
 
   return (
     <div>
-      {loading ? <p>Loading...</p> : <MasonryLayout posts={insightNotes} />}
+      {loading ? (
+        <div className=" flex gap-2">
+          <LoadingCard />
+          <LoadingCard />
+          <LoadingCard />
+          <LoadingCard />
+        </div>
+      ) : (
+        <MasonryLayout posts={insightNotes} />
+      )}
     </div>
   );
 };
