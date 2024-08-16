@@ -37,3 +37,15 @@ export const getProjectInsights = async (
     throw error;
   }
 };
+
+export const generateInsights = async (project_id: string) => {
+  const response = await fetch(`${backend}/projects/${project_id}/ingest/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to start ingestion: ${response.statusText}`);
+  }
+};

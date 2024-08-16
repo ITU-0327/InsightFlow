@@ -495,27 +495,22 @@ def download_file(project_id: str, file_name: str):
 
 
 @app.post("/api/projects/{project_id}/ingest/")
-async def ingest_data(request: Request, project_id: str):
-
+async def ingest_data(project_id: str):
     # Fetch file URLs
     file_urls = []
     try:
-        files = supabase.table("files").select("file_url").eq("project_id", project_id).eq("ingested",False).execute()
+        files = supabase.table("files").select("file_url").eq("project_id", project_id).eq("ingested", False).execute()
         file_urls = [file['file_url'] for file in files.data]
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    # ingest files
+    # Define the event generator function
     async def event_generator():
         async for message in vector_db_interactor.ingest_data(file_urls, project_id):
-            if await request.is_disconnected():
-                break
             yield f"data: {message}\n\n"
 
-    # TODO: mark all files as ingested
-    # supabase.table("files").select("file_url").eq("project_id", project_id).eq("ingested", true).execute()
-    return StreamingResponse(event_generator())
-
+    # Use StreamingResponse to stream data
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 @app.post("/api/projects/{project_id}/themes/")
 def create_theme_insights(project_id: str):

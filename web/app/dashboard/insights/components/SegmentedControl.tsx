@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 const SegmentedControl = () => {
   const pathname = usePathname();
   return (
-    <div className="border-2 border-purple-400 rounded-md overflow-hidden text-sm max-w-md">
+    <div className="border-2 border-purple-400 rounded-md overflow-hidden text-sm max-w-md min-w-[400px]">
       <div className="flex gap-2 p-2">
         <Link
           href="/dashboard/insights/"
