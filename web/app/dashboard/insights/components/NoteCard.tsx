@@ -1,16 +1,29 @@
+"use client";
+import React, { useState } from "react";
 import { getFileIcon, getFileType } from "@/app/utils";
 import { InsightNote } from "../insight.model";
 import BaseCard from "@/components/ui/card";
 import useClipboard from "../../hooks/use-copy-to-clipboard";
-import { IconCopy, IconCopyCheck } from "@tabler/icons-react";
+import { IconCopy, IconCopyCheck, IconEye } from "@tabler/icons-react";
+import Modal from "./Modal";
 
-const NoteCard = ({ note }: { note: InsightNote }) => {
+interface NoteCardProps {
+  note: InsightNote;
+}
+
+const NoteCard: React.FC<NoteCardProps> = ({ note }) => {
   const fileType = getFileType(note.source);
   const { copied, copyToClipboard } = useClipboard();
   const icon = getFileIcon(fileType);
+  const [isModalOpen, setModalOpen] = useState<boolean>(false);
 
-  const handleCopyClick = () => {
+  const handleViewClick = () => {
     copyToClipboard(note.note);
+    setModalOpen(true); // Open the modal when copying
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false); // Close the modal
   };
 
   return (
@@ -37,9 +50,15 @@ const NoteCard = ({ note }: { note: InsightNote }) => {
         <span className="text-gray-500">{icon}</span>
       </div>
 
-      <div className="flex items-center space-x-2 mt-4 w-full justify-end">
+      <div className="flex items-center space-x-2 mt-4 w-full justify-between">
+        <div
+          className="text-xs flex items-center gap-1 border border-gray-300 p-1 rounded-md hover:cursor-pointer hover:bg-gray-100"
+          onClick={handleViewClick}
+        >
+          <IconEye size={16} />
+          View Detail
+        </div>
         <button
-          onClick={handleCopyClick}
           className={`${copied ? "bg-purple-500" : "bg-purple-100"} ${
             copied ? "text-purple-100" : "text-purple-500"
           } px-2 py-1 font-medium text-xs rounded-md flex items-center space-x-1`}
@@ -48,6 +67,17 @@ const NoteCard = ({ note }: { note: InsightNote }) => {
           <span>{copied ? "Copied!" : "Copy Note"}</span>
         </button>
       </div>
+
+      {/* Modal component */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        content={
+          <div className="max-h-[550px]">
+            <p>{note.fullText}</p>
+          </div>
+        }
+      />
     </BaseCard>
   );
 };

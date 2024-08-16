@@ -15,7 +15,7 @@ export const MasonryLayout: React.FC<MasonryLayoutProps> = ({ posts }) => {
   });
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-20">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {columns.map((column, colIndex) => (
         <div key={colIndex} className="flex flex-col gap-1">
           {column.map((post) => (
