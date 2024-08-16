@@ -306,15 +306,34 @@ def create_theme_insights(project_id: str):
     try:
         # Filter necessary data
         filtered_data = vector_db_interactor.search(project_id)
-        # Load it to memory as a pandas dataframe
-        # Run clustering algo
-        # Pick the right k
-        # Update Vector DB metadata
-        return filtered_data # TODO: always return null for some reason
+        # TODO:Load it to memory as a pandas dataframe
+        # TODO:Run clustering algo
+        # TODO:Pick the right k
+        # TODO:Generate cluster names
+        # TODO:Update Vector DB metadata
+        return filtered_data
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+@app.get("/api/projects/{project_id}/themes/")
+def get_theme_insights(project_id: str):
+    # Fetch relevant data
+    try:
+        # Filter necessary data GROUP by theme
+        filtered_data = vector_db_interactor.search(project_id)
+
+        return filtered_data
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-
+@app.get("/api/projects/{project_id}/insights/docs")
+def get_all_docs_insights(project_id: str, count: int):
+    # Fetch relevant data
+    try:
+        # Filter necessary data
+        filtered_data = vector_db_interactor.search(project_id, count)
+        return filtered_data
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/api/projects/{project_id}/rag_chat/") # for chatting with persona & themes
 async def rag_chat(project_id: str, query: str, filters: Optional[Dict[str,str]] = None):

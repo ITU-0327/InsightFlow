@@ -18,21 +18,26 @@ from llama_index.core import VectorStoreIndex, StorageContext
 from llama_index.vector_stores.supabase import SupabaseVectorStore
 from llama_index.core.ingestion import IngestionPipeline
 from dotenv import load_dotenv
+
 load_dotenv(".env.local")
 SUPABASE_DB_CONN: str = os.environ.get("PUBLIC_SUPABASE_DB_CONN_URL")
+
+
 class NodeMetadata(BaseModel):
     """Model representing metadata extracted from the document."""
 
     tags: List[str] = Field(
-        ..., description="A category of the text chunk, can ONLY be one of ['pain points','behaviour','goals','demographics']"
+        ...,
+        description="A category of the text chunk, can ONLY be one of ['pain points','behaviour','goals','demographics']"
     )
-    summary: str = Field(
-        ..., description="A short summary of the text chunk no longer than 20 words"
+    note: str = Field(
+        ..., description="An interesting insight note (not summary) of the text chunk that considers all info but it should be no longer than 20 words"
     )
     suitable_for_persona: bool = Field(
         ...,
         description="Whether the text chunk is suitable to build a customer persona for UX research",
     )
+
 
 class VectorDBInteractor:
 
@@ -43,7 +48,7 @@ class VectorDBInteractor:
             self.index = None
             self.vector_store = None
 
-    async def ingest_data(self, urls: List[str], project_id:str):
+    async def ingest_data(self, urls: List[str], project_id: str):
         yield "Started processing data"
         # LOADING
         ingestion_path = os.path.join(gettempdir(), 'ingestion_data')
@@ -81,7 +86,7 @@ class VectorDBInteractor:
             postgres_connection_string=(
                 SUPABASE_DB_CONN
             ),
-            collection_name=project_id, # Project ID
+            collection_name=project_id,  # Project ID
         )
         #
         storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
@@ -98,7 +103,7 @@ class VectorDBInteractor:
 
         print("building index")
 
-        self.index = VectorStoreIndex.from_documents(docs,storage_context, show_progress=True)
+        self.index = VectorStoreIndex.from_documents(docs, storage_context, show_progress=True)
 
         yield "Preparing insights"
 
@@ -108,10 +113,10 @@ class VectorDBInteractor:
         print("deleted", ingestion_path)
         yield f"{"nodes"} Insights ready"
 
-    async def rag_query(self, query: str, project_id: str, filters: Optional[Dict[str,str]] = None):
+    async def rag_query(self, query: str, project_id: str, filters: Optional[Dict[str, str]] = None):
         # https://docs.llamaindex.ai/en/stable/examples/vector_stores/Qdrant_metadata_filter/
 
-        metadata_filters = None # TODO: need to transform JSON into MetadataFilters
+        metadata_filters = None  # TODO: need to transform JSON into MetadataFilters
         if self.vector_store is None:
             print(self.vector_store, "vec")
             self.vector_store = SupabaseVectorStore(
@@ -141,6 +146,7 @@ class VectorDBInteractor:
         )
         streaming_response = query_engine.query(query)
         return streaming_response
+
     def search(self, project_id: str, query: Dict[str, str] = None, count: int = 10):
         """
         Searches the Supabase table for entries matching the query/filter criteria.
@@ -159,23 +165,38 @@ class VectorDBInteractor:
             self.supabase_client
             .schema("vecs")
             .from_(project_id)
-            .select("id, vec, metadata->>summary as summary, metadata->tags as tags, metadata->>file_name as file_name, metadata->>suitable_for_persona as suitable_for_persona, metadata->_node_content as node_content")
+            .select(
+                "id, vec, metadata->>summary, metadata->tags, metadata->theme, metadata->persona_id, "
+                "metadata->>file_name, metadata->>suitable_for_persona, "
+                "metadata->_node_content"
+            )
         )
 
-        if count:
-            base_query = base_query.limit(count)
-            # Execute the query
+        # Apply user-specified filters
+        if query:
+            for key, value in query.items():
+                base_query = base_query.eq(f"metadata->{key}",value)
+
+
+        # Limit the number of results
+        base_query = base_query.limit(count)
+
         try:
+            # Execute the query
             response = base_query.execute()
-            if response.error:
-                raise Exception(f"Error executing search query: {response.error.message}")
-            print(response)
-            return response
+
+            # Print and return the data
+            data = response.data
+            print(f"Data: {data}")
+            return data
+
         except Exception as e:
             print(f"An error occurred: {e}")
             return None
+
     async def update(self, project_id: str, new_metadata):
         pass
+
     async def delete(self, project_id: str, filename: str):
         pass
 
