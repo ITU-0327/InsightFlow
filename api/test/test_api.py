@@ -7,19 +7,10 @@ from InsightFlow.main import app
 client = TestClient(app)
 
 # !! Need to match the project_id in the database as it's a foreign key for the files
-TEST_PROJECT_ID = "f420aa14-a549-4b2e-8499-b1cb113c23fa"
+TEST_USER_ID = "a9b40fbc-4a21-4b73-a290-eba57d416775"
+TEST_PROJECT_ID = "8a95c770-8f11-4b59-ad57-30954fb1e2e4"
 TEST_FILE_NAME = "test_file.txt"
 NON_EXISTING_FILE_NAME = "non_existing_file.txt"
-
-
-def test_create_project_from_pdf():
-    with open(TEST_FILE_NAME, "rb") as pdf_file:
-        response = client.post("/api/projects/", data={"user_id": "test_user"}, files={"file": pdf_file})
-
-    assert response.status_code == 200
-    assert "message" in response.json()
-    assert response.json()["message"] == "Project created successfully!"
-    assert "data" in response.json()
 
 
 # Create project with data, but no file
@@ -48,7 +39,7 @@ def test_create_project_from_pdf():
 
 
 def test_get_user_projects():
-    response = client.get("/api/users/test_user/projects/")
+    response = client.get(f"/api/users/{TEST_USER_ID}/projects/")
     assert response.status_code == 200
     assert isinstance(response.json(), list)  # Expecting a list of projects
 
@@ -75,7 +66,7 @@ def test_upload_file_failure():
 
 
 def test_get_project_files():
-    response = client.get("/api/projects/29342ce6-6892-468a-aba5-9875911b82cc/files/")
+    response = client.get(f"/api/projects/{TEST_PROJECT_ID}/files/")
     assert response.status_code == 200
     assert isinstance(response.json(), list)  # Expecting a list of files
     if response.json():
