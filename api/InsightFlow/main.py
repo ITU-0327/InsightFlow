@@ -95,7 +95,7 @@ def get_user_projects(user_id: str):
         HTTPException: If there is an issue retrieving the projects from the database.
     """
     try:
-        projects = supabase.table("projects").select("*").eq("user_id", user_id).execute()
+        projects = supabase.schema("public").from_("projects").select("*").eq("user_id", user_id).execute()
         return projects.data
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
