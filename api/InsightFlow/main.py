@@ -8,11 +8,11 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 import os
 from fastapi.middleware.cors import CORSMiddleware
-import re
 from starlette.responses import StreamingResponse
 from InsightFlow.VectorDBInteractor import VectorDBInteractor
 from openai import OpenAI
 from pydantic import BaseModel
+from InsightFlow.utils import file_name_formatter, create_project_vec_table
 
 load_dotenv(".env.local")
 
@@ -35,22 +35,6 @@ app.add_middleware(
 )
 
 vector_db_interactor = VectorDBInteractor(supabase_client=supabase)
-
-
-def file_name_formatter(file_name: str) -> str:
-    """
-    Format the file name by removing spaces and illegal characters.
-
-    Args:
-        file_name (str): The original file name.
-
-    Returns:
-        str: The formatted file name.
-    """
-    file_name = file_name.strip()
-    file_name = file_name.replace(" ", "_")
-    file_name = re.sub(r'[^\w\-.]', '', file_name)
-    return file_name
 
 
 # Define the ProjectDetails schema
@@ -87,7 +71,7 @@ async def create_project(user_id: str = Form(...), file: UploadFile = File(...))
 
         # Step 2: Use GPT to extract relevant data (title, description, requirements)
         completion = openai.beta.chat.completions.parse(
-            model="gpt-4o-2024-08-06",  # Replace with the appropriate model version
+            model="gpt-4o-2024-08-06",  # Replace it with the appropriate model version
             messages=[
                 {"role": "system", "content": "You are an expert at structured data extraction. You will be given "
                                               "unstructured text from a business system description and should "
@@ -108,6 +92,7 @@ async def create_project(user_id: str = Form(...), file: UploadFile = File(...))
                 "requirements": project_details.requirements,
             }
         ).execute()
+        create_project_vec_table(project.data[0]["id"])
 
         # Step 4: Clean up the temporary file
         os.remove(temp_file_path)
