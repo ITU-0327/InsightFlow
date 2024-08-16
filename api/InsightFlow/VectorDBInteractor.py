@@ -31,7 +31,7 @@ class NodeMetadata(BaseModel):
         description="A category of the text chunk, can ONLY be one of ['pain points','behaviour','goals','demographics']"
     )
     note: str = Field(
-        ..., description="An interesting insight note (not summary) of the text chunk that considers all info but it should be no longer than 20 words"
+        ..., description="An interesting insight note of the text chunk no longer than 20 words"
     )
     suitable_for_persona: bool = Field(
         ...,
