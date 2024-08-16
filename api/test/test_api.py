@@ -1,7 +1,7 @@
-from InsightFlow.main import app
 from dotenv import load_dotenv
-from fastapi.testclient import TestClient
 load_dotenv("../.env.local")
+from fastapi.testclient import TestClient
+from InsightFlow.main import app
 
 # Initialize the test client
 client = TestClient(app)
@@ -48,7 +48,7 @@ def test_upload_file_success(tmp_path):
     test_file.write_text("This is a test file to check if the file correctly update, after the file is uploaded.")
 
     with open(test_file, "rb") as file:
-        response = client.post(f"/projects/{TEST_PROJECT_ID}/files/",
+        response = client.post(f"/api/projects/{TEST_PROJECT_ID}/files/",
                                files={"file": file})
 
     assert response.status_code == 200
@@ -75,7 +75,7 @@ def test_get_project_files():
 
 def test_download_file_success():
     # Assuming the file was uploaded successfully in a previous test
-    response = client.get(f"/projects/{TEST_PROJECT_ID}/files/{TEST_FILE_NAME}/download/")
+    response = client.get(f"/api/projects/{TEST_PROJECT_ID}/files/{TEST_FILE_NAME}/download/")
 
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/octet-stream"
@@ -89,7 +89,7 @@ def test_download_file_success():
 
 def test_download_file_failure():
     # Attempting to download a non-existing file
-    response = client.get(f"/projects/{TEST_PROJECT_ID}/files/{NON_EXISTING_FILE_NAME}/download/")
+    response = client.get(f"/api/projects/{TEST_PROJECT_ID}/files/{NON_EXISTING_FILE_NAME}/download/")
 
     assert response.status_code == 404  # Expecting a "File not found" error
     assert "detail" in response.json()
@@ -100,7 +100,7 @@ def test_delete_file_success():
     # Assume there's a file to delete with a known project_id and file_name
 
     # Make the DELETE request with project_id and file_name as query parameters
-    response = client.delete("/api/files/", params={"project_id": project_id, "file_name": file_name})
+    response = client.delete("/api/files/", params={"project_id": TEST_PROJECT_ID, "file_name": TEST_FILE_NAME})
 
     # Assert the response
     assert response.status_code == 200
@@ -109,7 +109,7 @@ def test_delete_file_success():
 
 def test_delete_file_failure():
     # Make the DELETE request with project_id and non-existing file_name as query parameters
-    response = client.delete("/api/files/", params={"project_id": project_id, "file_name": file_name})
+    response = client.delete("/api/files/", params={"project_id": TEST_PROJECT_ID, "file_name": TEST_FILE_NAME})
 
     # Assert the response
     assert response.status_code == 404  # Expecting a "File not found" error
