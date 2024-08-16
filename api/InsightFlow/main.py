@@ -1,5 +1,5 @@
 from typing import Dict, Optional
-
+from llama_index.readers.file import PDFReader
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import FileResponse
 from tempfile import NamedTemporaryFile
@@ -11,6 +11,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import re
 from starlette.responses import StreamingResponse
 from InsightFlow.VectorDBInteractor import VectorDBInteractor
+from openai import OpenAI
+from pydantic import BaseModel
 
 load_dotenv(".env.local")
 
@@ -19,6 +21,7 @@ SUPABASE_URL: str = os.environ.get("PUBLIC_SUPABASE_URL")
 SUPABASE_KEY: str = os.environ.get("PUBLIC_SUPABASE_ANON_KEY")
 FRONTEND_HOST: str = os.environ.get("FRONTEND_HOST_URL")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+openai = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 app = FastAPI()
 
@@ -50,33 +53,65 @@ def file_name_formatter(file_name: str) -> str:
     return file_name
 
 
+# Define the ProjectDetails schema
+class ProjectDetails(BaseModel):
+    title: str
+    description: str
+    requirements: str
+
+
 @app.post("/api/projects/")
-def create_project(user_id: str = Form(...), title: str = Form(...), description: str = Form(...),
-                   requirements: str = Form(...)):
+async def create_project(user_id: str = Form(...), file: UploadFile = File(...)):
     """
-    Create a new project.
+    Create a new project by extracting information from a PDF file.
 
     Args:
         user_id (str): The ID of the user creating the project.
-        title (str): The title of the project.
-        description (str): A brief description of the project.
-        requirements (str): The requirements or specifications of the project.
+        file (UploadFile): The PDF file containing the project information.
 
     Returns:
         dict: A message indicating the success of the operation along with the project data.
 
     Raises:
-        HTTPException: If there is an issue inserting the project into the database.
+        HTTPException: If there is an issue processing the file or inserting the project into the database.
     """
     try:
+        # Step 1: Read the PDF file
+        pdf_reader = PDFReader()
+        with NamedTemporaryFile(delete=False) as temp_file:
+            temp_file.write(await file.read())
+            temp_file_path = temp_file.name
+
+        # Extract text from the PDF
+        extracted_text = pdf_reader.load_data(temp_file_path)[0].text
+
+        # Step 2: Use GPT to extract relevant data (title, description, requirements)
+        completion = openai.beta.chat.completions.parse(
+            model="gpt-4o-2024-08-06",  # Replace with the appropriate model version
+            messages=[
+                {"role": "system", "content": "You are an expert at structured data extraction. You will be given "
+                                              "unstructured text from a business system description and should "
+                                              "convert it into the given structure."},
+                {"role": "user", "content": extracted_text},
+            ],
+            response_format=ProjectDetails,  # Use the defined schema
+        )
+
+        project_details = completion.choices[0].message.parsed
+
+        # Step 3: Insert the project into the database
         project = supabase.table("projects").insert(
             {
                 "user_id": user_id,
-                "title": title,
-                "description": description,
-                "requirements": requirements,
+                "title": project_details.title,
+                "description": project_details.description,
+                "requirements": project_details.requirements,
             }
         ).execute()
+
+        # Step 4: Clean up the temporary file
+        os.remove(temp_file_path)
+
         return {"message": "Project created successfully!", "data": project.data}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -289,6 +324,7 @@ async def ingest_data(project_id: str):
         files = supabase.table("files").select("file_url").eq("project_id", project_id).eq("ingested", False).execute()
         file_urls = [file['file_url'] for file in files.data]
     except Exception as e:
+        print(f"An error occurred while fetching file URLs: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
     # Define the event generator function

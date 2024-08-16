@@ -12,28 +12,39 @@ TEST_FILE_NAME = "test_file.txt"
 NON_EXISTING_FILE_NAME = "non_existing_file.txt"
 
 
-def test_create_project_success():
-    response = client.post("/api/projects/", data={
-        "user_id": "test_user",
-        "title": "Test Project",
-        "description": "This is a test project description.",
-        "requirements": "These are the test requirements."
-    })
+def test_create_project_from_pdf():
+    with open(TEST_FILE_NAME, "rb") as pdf_file:
+        response = client.post("/api/projects/", data={"user_id": "test_user"}, files={"file": pdf_file})
+
     assert response.status_code == 200
     assert "message" in response.json()
     assert response.json()["message"] == "Project created successfully!"
     assert "data" in response.json()
 
 
-def test_create_project_failure():
-    # Missing one of the required fields
-    response = client.post("/api/projects/", data={
-        "user_id": "test_user",
-        "title": "Test Project",
-        "description": "This is a test project description."
-        # Missing 'requirements'
-    })
-    assert response.status_code == 422  # FastAPI will automatically raise a validation error for missing fields
+# Create project with data, but no file
+# def test_create_project_success():
+#     response = client.post("/api/projects/", data={
+#         "user_id": "test_user",
+#         "title": "Test Project",
+#         "description": "This is a test project description.",
+#         "requirements": "These are the test requirements."
+#     })
+#     assert response.status_code == 200
+#     assert "message" in response.json()
+#     assert response.json()["message"] == "Project created successfully!"
+#     assert "data" in response.json()
+#
+#
+# def test_create_project_failure():
+#     # Missing one of the required fields
+#     response = client.post("/api/projects/", data={
+#         "user_id": "test_user",
+#         "title": "Test Project",
+#         "description": "This is a test project description."
+#         # Missing 'requirements'
+#     })
+#     assert response.status_code == 422  # FastAPI will automatically raise a validation error for missing fields
 
 
 def test_get_user_projects():
