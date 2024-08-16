@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import FileResponse
 from tempfile import NamedTemporaryFile
 from supabase import create_client, Client
@@ -31,8 +31,8 @@ app.add_middleware(
     allow_headers=["*"],  # You can restrict headers if needed
 )
 
-
 vector_db_interactor = VectorDBInteractor(supabase_client=supabase)
+
 
 def file_name_formatter(file_name: str) -> str:
     """
@@ -49,8 +49,10 @@ def file_name_formatter(file_name: str) -> str:
     file_name = re.sub(r'[^\w\-.]', '', file_name)
     return file_name
 
+
 @app.post("/api/projects/")
-def create_project(user_id: str = Form(...), title: str = Form(...), description: str = Form(...), requirements: str = Form(...)):
+def create_project(user_id: str = Form(...), title: str = Form(...), description: str = Form(...),
+                   requirements: str = Form(...)):
     """
     Create a new project.
 
@@ -169,9 +171,11 @@ async def upload_file(project_id: str, file: UploadFile = File(...)):
         return {"message": "File uploaded successfully!", "file_url": file_url}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
 # @app.post("/api/projects/{project_id}/files/")
 # def upload_project_background_file(project_id: str, file: UploadFile = File(...)):
-    
+
 
 @app.get("/api/projects/{project_id}/files/")
 def get_project_files(project_id: str):
@@ -295,6 +299,7 @@ async def ingest_data(project_id: str):
     # Use StreamingResponse to stream data
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
+
 @app.post("/api/projects/{project_id}/themes/")
 def create_theme_insights(project_id: str):
     # Fetch relevant data
@@ -309,16 +314,18 @@ def create_theme_insights(project_id: str):
         return filtered_data
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
 @app.get("/api/projects/{project_id}/themes/")
 def get_theme_insights(project_id: str):
     # Fetch relevant data
     try:
         # Filter necessary data GROUP by theme
         filtered_data = vector_db_interactor.search(project_id)
-
         return filtered_data
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
 
 @app.get("/api/projects/{project_id}/insights/docs")
 def get_all_docs_insights(project_id: str):
@@ -330,12 +337,13 @@ def get_all_docs_insights(project_id: str):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.post("/api/projects/{project_id}/rag_chat/") # for chatting with persona & themes
-async def rag_chat(project_id: str, query: str, filters: Optional[Dict[str,str]] = None):
-    print(project_id,query)
+
+@app.post("/api/projects/{project_id}/rag_chat/")  # for chatting with persona & themes
+async def rag_chat(project_id: str, query: str, filters: Optional[Dict[str, str]] = None):
+    print(project_id, query)
     try:
         # TODO: need to make it streamable
-        
+
         response_stream = await vector_db_interactor.rag_query(query, project_id, filters)
         return response_stream
     except Exception as e:

@@ -1,22 +1,22 @@
+import os
 import shutil
 from tempfile import gettempdir
 from typing import List, Optional, Dict
 from urllib.parse import urlparse
+from supabase import Client
 
 import aiohttp
-from llama_index.core.indices.vector_store import VectorIndexRetriever
+from llama_index.core.ingestion import IngestionPipeline
 from llama_index.core.query_engine import RetrieverQueryEngine
-from llama_index.core.vector_stores import MetadataFilters
-from supabase import Client
-import os
+from llama_index.core.extractors import PydanticProgramExtractor
+from llama_index.core.indices.vector_store import VectorIndexRetriever
+from llama_index.core import SimpleDirectoryReader, get_response_synthesizer, VectorStoreIndex, StorageContext
 from llama_index.readers.file import PDFReader, CSVReader
 from llama_index.program.openai import OpenAIPydanticProgram
-from llama_index.core.extractors import PydanticProgramExtractor
-from llama_index.core import SimpleDirectoryReader, get_response_synthesizer
-from pydantic import BaseModel, Field
-from llama_index.core import VectorStoreIndex, StorageContext
 from llama_index.vector_stores.supabase import SupabaseVectorStore
-from llama_index.core.ingestion import IngestionPipeline
+
+from pydantic import BaseModel, Field
+
 from dotenv import load_dotenv
 
 load_dotenv(".env.local")
@@ -25,13 +25,14 @@ SUPABASE_DB_CONN: str = os.environ.get("PUBLIC_SUPABASE_DB_CONN_URL")
 
 class NodeMetadata(BaseModel):
     """Model representing metadata extracted from the document."""
-
     tags: List[str] = Field(
         ...,
-        description="A category of the text chunk, can ONLY be one of ['pain points','behaviour','goals','demographics']"
+        description="A category of the text chunk, can ONLY be one of ['pain points','behaviour','goals',"
+                    "'demographics']"
     )
     note: str = Field(
-        ..., description="An interesting insight note of the text chunk no longer than 20 words"
+        ...,
+        description="An interesting insight note of the text chunk no longer than 20 words"
     )
     suitable_for_persona: bool = Field(
         ...,
@@ -40,7 +41,6 @@ class NodeMetadata(BaseModel):
 
 
 class VectorDBInteractor:
-
     def __init__(self, supabase_client: Client):
         if not hasattr(self, 'initialized'):
             self.supabase_client = supabase_client
@@ -77,7 +77,7 @@ class VectorDBInteractor:
             extract_template_str=EXTRACT_TEMPLATE_STR,
             description="Program to extract metadata from documents based on NodeMetadata model."
         )
-        #
+
         program_extractor = PydanticProgramExtractor(
             program=openai_program, input_key="input", show_progress=True
         )
@@ -88,7 +88,7 @@ class VectorDBInteractor:
             ),
             collection_name=project_id,  # Project ID
         )
-        #
+
         storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
 
         pipeline = IngestionPipeline(
@@ -107,7 +107,7 @@ class VectorDBInteractor:
 
         yield "Preparing insights"
 
-        # remove all locally stored data & cleanup
+        # remove all locally stored data
         # Cleanup
         shutil.rmtree(ingestion_path)
         print("deleted", ingestion_path)
@@ -175,8 +175,7 @@ class VectorDBInteractor:
         # Apply user-specified filters
         if query:
             for key, value in query.items():
-                base_query = base_query.eq(f"metadata->{key}",value)
-
+                base_query = base_query.eq(f"metadata->{key}", value)
 
         # Limit the number of results
         base_query = base_query.limit(count)
@@ -200,7 +199,8 @@ class VectorDBInteractor:
     async def delete(self, project_id: str, filename: str):
         pass
 
-    async def _download_file(self, url: str, dest_folder: str):
+    @staticmethod
+    async def _download_file(url: str, dest_folder: str):
         parsed_url = urlparse(url)
         clean_url = parsed_url._replace(query="").geturl()
         filename = clean_url.split('/')[-1].replace(" ", "_")
