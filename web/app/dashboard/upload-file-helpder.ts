@@ -7,7 +7,7 @@ export const uploadFile = async (file: File, projectId: string) => {
     formData.append("file", file);
 
     const response = await fetch(
-      `http://localhost:8000/api/projects/${projectId}/files/`, // TODO: dont know how to hide this thing
+      `${backend}/projects/${projectId}/files/`, // TODO: dont know how to hide this thing
       {
         method: "POST",
         body: formData,
@@ -22,5 +22,26 @@ export const uploadFile = async (file: File, projectId: string) => {
     }
   } catch (error) {
     console.error("Error uploading file:", error);
+  }
+};
+export const createProject = async (file: File, userId: string): Promise<void> => {
+  const { backend } = useClientConfig();
+  console.log("Backend URL:", backend);
+  try {
+    const formData = new FormData();
+    formData.append("user_id", userId);
+    formData.append("file", file);
+
+    const response = await fetch(`${backend}/projects`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to create project: ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error("Error creating project:", error);
+    throw error;
   }
 };

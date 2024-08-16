@@ -7,7 +7,7 @@ import { getProjects } from "./actions";
 import { Project } from "@/models/Project";
 import React from "react";
 import LoadingCard from "@/components/ui/card-loading";
-import { uploadFile } from "./upload-file-helpder";
+import { uploadFile, createProject } from "./upload-file-helpder";
 import { useAuth } from "./hooks/use-auth";
 
 // Dynamically import the ProjectCard component with suspense
@@ -24,6 +24,8 @@ const Page = () => {
     try {
       const auth = await useAuth();
       const userProjects = await getProjects(auth?.userId);
+
+      console.log("Fetched projects:", userProjects);
       setProjects(userProjects);
     } catch (error) {
       console.error("Error fetching projects:", error);
@@ -37,11 +39,24 @@ const Page = () => {
   }, []);
 
   const handleFileDrop = async (file: File) => {
-    if (!projects[0]) return; // Ensure there's a project to update
-
     setUploading(true);
     try {
-      await uploadFile(file, projects[0].id!);
+      const auth = await useAuth(); // Get the user_id
+      const userId = auth?.userId;
+
+      if (!userId) {
+        throw new Error("User ID not found");
+      }
+
+      if (projects.length === 0) {
+        // Create a new project by uploading the project description
+        await createProject(file, userId);
+      } else {
+        // Update existing project with a new description
+        await uploadFile(file, projects[0].id!);
+      }
+      // Refresh the project list after creating or updating a project
+      await fetchProjects();
     } catch (error) {
       console.error("Error uploading file:", error);
     } finally {
@@ -53,8 +68,12 @@ const Page = () => {
     <div className="p-4 w-full">
       {loading ? (
         <LoadingCard className="mb-6" />
+      ) : projects.length > 0 ? (
+        <ProjectCard project={projects[0]} />
       ) : (
-        projects[0] && <ProjectCard project={projects[0]} />
+        <div className="mb-6 p-4 bg-white shadow rounded">
+          <p>No projects found. Upload a project description to create one.</p>
+        </div>
       )}
 
       <Dropzone
@@ -65,8 +84,10 @@ const Page = () => {
         }}
         text={
           uploading
-            ? "Uploading..."
-            : "Drag & drop to update project description in .pdf here ..."
+              ? "Uploading..."
+              : projects.length === 0
+              ? "Drag & drop to upload project description and create a new project..."
+              : "Drag & drop to update project description..."
         }
         disabled={uploading} // Disable dropzone during upload
       />

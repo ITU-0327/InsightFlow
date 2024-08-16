@@ -30,7 +30,7 @@ export const getProjects = async (
     const projects: Project[] = await response.json();
     return projects;
   } catch (error) {
-    console.error("Error fetching projects:", error);
+    console.error("Error fetching projects for user:", user_id, error);
     throw error;
   }
 };
