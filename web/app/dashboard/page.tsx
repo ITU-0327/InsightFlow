@@ -50,7 +50,15 @@ const Page = () => {
 
       if (projects.length === 0) {
         // Create a new project by uploading the project description
-        await createProject(file, userId);
+        const projectId = await createProject(file, userId);
+
+        if (projectId) {
+          // Step 2: Upload the file to the created project
+          await uploadFile(file, projectId);
+          console.log("File uploaded to project:", projectId);
+        } else {
+          console.error("Failed to create project. File upload skipped.");
+        }
       } else {
         // Update existing project with a new description
         await uploadFile(file, projects[0].id!);
