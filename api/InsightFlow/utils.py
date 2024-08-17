@@ -37,11 +37,10 @@ def create_project_vec_table(project_id: str):
 
         # SQL command to create a table
         create_table_query = sql.SQL("""
-        CREATE TABLE IF NOT EXISTS {table_name} (
+        CREATE TABLE IF NOT EXISTS vecs.{table_name} (
             id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
             vec vector(1536),  -- Adjust the dimension size of the vector as needed
             metadata jsonb,
-            _node_content text,
             created_at timestamp with time zone DEFAULT now()
         );
         """).format(table_name=table_name)
