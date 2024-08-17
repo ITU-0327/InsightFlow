@@ -69,18 +69,6 @@ async def create_project(user_id: str = Form(...), file: UploadFile = File(...))
         # Extract text from the PDF
         extracted_text = pdf_reader.load_data(temp_file_path)[0].text
 
-        # Step 2: Use GPT to extract relevant data (title, description, requirements)
-        # completion = openai.beta.chat.completions.parse(
-        #     model="gpt-4o-2024-08-06",  # Replace it with the appropriate model version
-        #     messages=[
-        #         {"role": "system", "content": "You are an expert at structured data extraction. You will be given "
-        #                                       "unstructured text from a business system description and should "
-        #                                       "convert it into the given structure."},
-        #         {"role": "user", "content": extracted_text},
-        #     ],
-        #     response_format=ProjectDetails,  # Use the defined schema
-        # )
-
         project_details = openai_summary(system_prompt="You are an expert at structured data extraction. You will be given unstructured text from a business system description and should convert it into the given structure."
                                          , user_prompt=extracted_text, response_model=ProjectDetails)
 
