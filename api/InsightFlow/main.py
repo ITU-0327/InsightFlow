@@ -336,12 +336,12 @@ async def ingest_data(project_id: str):
 
 
 @app.post("/api/projects/{project_id}/themes/")
-def create_theme_insights(project_id: str):
+async def create_theme_insights(project_id: str):
     # Fetch relevant data
     try:
         # Filter necessary data
         pipeline = ClusteringPipeline(vector_db_interactor)
-        pipeline.run_theme_clustering_pipeline(project_id=project_id)
+        await pipeline.run_theme_clustering_pipeline(project_id=project_id)
         return {"message": "Update successful"}
     except Exception as e:
         print(e)
