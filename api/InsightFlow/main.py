@@ -44,19 +44,23 @@ class ProjectDetails(BaseModel):
 
 
 @app.post("/api/projects/")
-async def create_project(user_id: str = Form(...), file: UploadFile = File(...)):
+async def upsert_project(user_id: str = Form(...), file: UploadFile = File(...), project_id: str = Form(None)):
     """
-    Create a new project by extracting information from a PDF file.
+    Create or update a project by uploading a PDF file.
+
+    If `project_id` is provided, the existing project will be updated.
+    If `project_id` is not provided, a new project will be created.
 
     Args:
-        user_id (str): The ID of the user creating the project.
+        user_id (str): The ID of the user creating/updating the project.
         file (UploadFile): The PDF file containing the project information.
+        project_id (str, optional): The ID of the project to update.
 
     Returns:
         dict: A message indicating the success of the operation along with the project data.
 
     Raises:
-        HTTPException: If there is an issue processing the file or inserting the project into the database.
+        HTTPException: If there is an issue processing the file or inserting/updating the project in the database.
     """
     try:
         # Step 1: Read the PDF file
@@ -68,27 +72,41 @@ async def create_project(user_id: str = Form(...), file: UploadFile = File(...))
         # Extract text from the PDF
         extracted_text = pdf_reader.load_data(temp_file_path)[0].text
 
-        project_details = openai_summary(system_prompt="You are an expert at structured data extraction. You will be "
-                                                       "given unstructured text from a business system description "
-                                                       "and should convert it into the given structure.",
-                                         user_prompt=extracted_text,
-                                         response_model=ProjectDetails)
+        project_details = openai_summary(
+            system_prompt="You are an expert at structured data extraction. You will be "
+                          "given unstructured text from a business system description "
+                          "and should convert it into the given structure.",
+            user_prompt=extracted_text,
+            response_model=ProjectDetails
+        )
 
-        # Step 3: Insert the project into the database
-        project = supabase.schema("public").from_("projects").insert(
-            {
-                "user_id": user_id,
-                "title": project_details.title,
-                "description": project_details.description,
-                "requirements": project_details.requirements,
-            }
-        ).execute()
-        create_project_vec_table(project.data[0]["id"])
+        if project_id:
+            # Step 3a: Update the existing project
+            project = supabase.schema("public").from_("projects").update(
+                {
+                    "title": project_details.title,
+                    "description": project_details.description,
+                    "requirements": project_details.requirements,
+                }
+            ).eq("id", project_id).execute()
+            message = "Project updated successfully!"
+        else:
+            # Step 3b: Insert a new project into the database
+            project = supabase.schema("public").from_("projects").insert(
+                {
+                    "user_id": user_id,
+                    "title": project_details.title,
+                    "description": project_details.description,
+                    "requirements": project_details.requirements,
+                }
+            ).execute()
+            create_project_vec_table(project.data[0]["id"])
+            message = "Project created successfully!"
 
         # Step 4: Clean up the temporary file
         os.remove(temp_file_path)
 
-        return {"message": "Project created successfully!", "data": project.data}
+        return {"message": message, "data": project.data}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

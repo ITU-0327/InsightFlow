@@ -7,7 +7,7 @@ import { getProjects } from "./actions";
 import { Project } from "@/models/Project";
 import React from "react";
 import LoadingCard from "@/components/ui/card-loading";
-import { uploadFile, createProject } from "./upload-file-helpder";
+import {uploadFile, upsertProject} from "./upload-file-helpder";
 import { useAuth } from "./hooks/use-auth";
 
 // Dynamically import the ProjectCard component with suspense
@@ -48,23 +48,24 @@ const Page = () => {
         throw new Error("User ID not found");
       }
 
-      if (projects.length === 0) {
-        // Create a new project by uploading the project description
-        const projectId = await createProject(file, userId);
+      // Determine if there is an existing project
+      let projectId = projects.length > 0 ? projects[0]?.id : null;
 
-        if (projectId) {
-          // Step 2: Upload the file to the created project
-          await uploadFile(file, projectId);
-          console.log("File uploaded to project:", projectId);
-        } else {
-          console.error("Failed to create project. File upload skipped.");
-        }
+      // Upsert the project (create or update)
+      projectId = await upsertProject(file, userId, projectId);
+
+      if (projectId) {
+        console.log(`${projects.length === 0 ? "New project created" : "Project updated"} with ID:`, projectId);
+
+        // Upload the file to the project
+        await uploadFile(file, projectId);
+        console.log("File uploaded to project:", projectId);
+
+        // Refresh the project list after creating or updating a project
+        await fetchProjects();
       } else {
-        // Update existing project with a new description
-        await uploadFile(file, projects[0].id!);
+        console.error("Failed to upsert project. File upload skipped.");
       }
-      // Refresh the project list after creating or updating a project
-      await fetchProjects();
     } catch (error) {
       console.error("Error uploading file:", error);
     } finally {
