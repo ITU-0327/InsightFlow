@@ -9,7 +9,9 @@ import {
 
 export const getFileType = (fileName: string): string => {
   // Extract the file extension from the file name
-  const fileExtension = fileName.split(".").pop()?.toLowerCase();
+  const fileExtension = fileName
+    .substring(fileName.lastIndexOf(".") + 1)
+    .toLowerCase();
   return fileExtension || "";
 };
 

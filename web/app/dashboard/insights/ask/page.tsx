@@ -20,7 +20,7 @@ const convertToInsightNotes = (sources: Record<string, any>): InsightNote[] => {
       note: value.note, // Assuming 'note' refers to the filename
       tags: value.tags, // Assuming no tags are provided; adjust as needed
       fullText: value.note, // Assuming 'fullText' refers to the file path
-      source: value.filename, // Assuming 'source' refers to the filename
+      source: value.file_name,
     };
   });
 };
@@ -55,6 +55,7 @@ const Page: React.FC = () => {
       const projectId = projects[0].id!;
       const response = await ragChatAction(projectId, input);
       // JSON.stringify(response.metadata)
+      console.log(response);
       setMessages([
         ...newMessages,
         {
