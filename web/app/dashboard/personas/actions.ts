@@ -2,6 +2,7 @@ import { useClientConfig } from "../hooks/use-config";
 
 export interface Persona {
   name: string;
+  personaId: string;
   personaTitle: string;
   demographics: string;
   behavior: string;
@@ -32,6 +33,7 @@ export const getPersonas = async (
     const result = await response.json();
     return result.data.map((person: any) => ({
       name: person.name,
+      personaId: person.id,
       personaTitle: person.persona_title,
       demographics: person.demographics,
       behavior: person.behavior_patterns,
