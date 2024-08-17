@@ -175,11 +175,6 @@ class VectorDBInteractor:
         # Base query: selecting the required fields without any filters
         base_query = self.get_base_query(project_id=project_id)
 
-        # Apply user-specified filters
-        if query:
-            for key, value in query.items():
-                base_query = base_query.eq(f"metadata->{key}", value)
-
         # Limit the number of results
         base_query = base_query.limit(count)
 

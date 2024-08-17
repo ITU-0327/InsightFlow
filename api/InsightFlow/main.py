@@ -12,7 +12,8 @@ from starlette.responses import StreamingResponse
 from InsightFlow.VectorDBInteractor import VectorDBInteractor
 from openai import OpenAI
 from pydantic import BaseModel
-from InsightFlow.utils import file_name_formatter, create_project_vec_table
+from InsightFlow.utils import file_name_formatter, create_project_vec_table, openai_summary
+from InsightFlow.ClusteringPipeline import ClusteringPipeline
 
 load_dotenv(".env.local")
 
@@ -21,7 +22,6 @@ SUPABASE_URL: str = os.environ.get("PUBLIC_SUPABASE_URL")
 SUPABASE_KEY: str = os.environ.get("PUBLIC_SUPABASE_ANON_KEY")
 FRONTEND_HOST: str = os.environ.get("FRONTEND_HOST_URL")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-openai = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 app = FastAPI()
 
@@ -70,18 +70,19 @@ async def create_project(user_id: str = Form(...), file: UploadFile = File(...))
         extracted_text = pdf_reader.load_data(temp_file_path)[0].text
 
         # Step 2: Use GPT to extract relevant data (title, description, requirements)
-        completion = openai.beta.chat.completions.parse(
-            model="gpt-4o-2024-08-06",  # Replace it with the appropriate model version
-            messages=[
-                {"role": "system", "content": "You are an expert at structured data extraction. You will be given "
-                                              "unstructured text from a business system description and should "
-                                              "convert it into the given structure."},
-                {"role": "user", "content": extracted_text},
-            ],
-            response_format=ProjectDetails,  # Use the defined schema
-        )
+        # completion = openai.beta.chat.completions.parse(
+        #     model="gpt-4o-2024-08-06",  # Replace it with the appropriate model version
+        #     messages=[
+        #         {"role": "system", "content": "You are an expert at structured data extraction. You will be given "
+        #                                       "unstructured text from a business system description and should "
+        #                                       "convert it into the given structure."},
+        #         {"role": "user", "content": extracted_text},
+        #     ],
+        #     response_format=ProjectDetails,  # Use the defined schema
+        # )
 
-        project_details = completion.choices[0].message.parsed
+        project_details = openai_summary(system_prompt="You are an expert at structured data extraction. You will be given unstructured text from a business system description and should convert it into the given structure."
+                                         , user_prompt=extracted_text, response_model=ProjectDetails)
 
         # Step 3: Insert the project into the database
         project = supabase.schema("public").from_("projects").insert(
@@ -326,13 +327,14 @@ def create_theme_insights(project_id: str):
     # Fetch relevant data
     try:
         # Filter necessary data
-        filtered_data = vector_db_interactor.select_all(project_id)
+        pipeline = ClusteringPipeline(vector_db_interactor)
         # TODO:Load it to memory as a pandas dataframe
+        pipeline.run_theme_clustering_pipeline(project_id=project_id)
         # TODO:Run clustering algo
         # TODO:Pick the right k
         # TODO:Generate cluster names
         # TODO:Update Vector DB metadata
-        return filtered_data
+        return none
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

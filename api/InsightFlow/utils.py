@@ -1,13 +1,17 @@
 import re
 import os
 import aiohttp
+import openai
 import psycopg2
 from psycopg2 import sql
 from dotenv import load_dotenv
 from urllib.parse import urlparse
 
+from pydantic import BaseModel
+
 load_dotenv(".env.local")
 SUPABASE_DB_CONN: str = os.environ.get("PUBLIC_SUPABASE_DB_CONN_URL")
+openai = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 
 def file_name_formatter(file_name: str) -> str:
@@ -77,3 +81,20 @@ async def _download_file(url: str, dest_folder: str):
                     f.write(chunk)
                     f.flush()
                     os.fsync(f.fileno())
+
+
+class DefaultResponse(BaseModel):
+    response: str
+ 
+def openai_summary(system_prompt, user_prompt, response_model=DefaultResponse):
+    completion = openai.beta.chat.completions.parse(
+            model="gpt-4o-2024-08-06",  # Replace it with the appropriate model version
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            response_format=response_model,  # Use the defined schema
+        )
+    print(completion)
+    
+    return completion.choices[0].message.parsed
