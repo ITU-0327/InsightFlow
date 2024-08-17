@@ -31,3 +31,31 @@ export const getFileIcon = (fileType: string) => {
       return <IconFile />;
   }
 };
+export type Tag = "pain points" | "behaviour" | "demographics" | "goals";
+
+export const getTagColour = (tag: Tag) => {
+  const tagColourMap: Record<Tag, { bg: string; text: string }> = {
+    "pain points": {
+      bg: "bg-pink-200",
+      text: "text-pink-800",
+    },
+    behaviour: {
+      bg: "bg-blue-200",
+      text: "text-blue-800",
+    },
+    demographics: {
+      bg: "bg-green-200",
+      text: "text-green-800",
+    },
+    goals: {
+      bg: "bg-yellow-200",
+      text: "text-yellow-800",
+    },
+  };
+  return (
+    tagColourMap[tag] || {
+      bg: "bg-purple-100",
+      text: "text-purple-800",
+    }
+  );
+};

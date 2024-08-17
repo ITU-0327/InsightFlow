@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { getFileIcon, getFileType } from "@/app/utils";
+import { Tag, getFileIcon, getFileType, getTagColour } from "@/app/utils";
 import { InsightNote } from "../insight.model";
 import BaseCard from "@/components/ui/card";
 import useClipboard from "../../hooks/use-copy-to-clipboard";
@@ -37,7 +37,10 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, className }) => {
         {note.tags.map((tag, index) => (
           <span
             key={index}
-            className="bg-purple-100 text-purple-800 text-xs font-bold px-2.5 py-0.5 rounded-md m-1"
+            className={cn(
+              `text-xs font-bold px-2.5 py-0.5 rounded-md m-1`,
+              `${getTagColour(tag as Tag).bg} ${getTagColour(tag as Tag).text}`
+            )}
           >
             #{tag}
           </span>
