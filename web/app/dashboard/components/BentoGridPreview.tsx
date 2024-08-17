@@ -33,7 +33,7 @@ const features = [
     Icon: ChatBubbleIcon,
     name: "Chat with your user",
     description: "Generate user personas that you can chat with !",
-    href: "/",
+    href: "/dashboard/personas",
     cta: "Explore",
     background: (
       <Image

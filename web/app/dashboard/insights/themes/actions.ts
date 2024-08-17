@@ -33,7 +33,7 @@ export const getProjectThemes = async (
         notes: themeData.data.map((d: any) => ({
           note: d.note,
           tags: d.tags,
-          fullText: d.note,
+          fullText: d.text_content,
           source: d.file_name,
         })),
       });
