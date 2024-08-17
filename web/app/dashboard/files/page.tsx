@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { ProjectFile } from "./files.model";
-import { deleteProjectFile, downloadFile, getProjectFiles } from "./actions";
+import { deleteProjectFile, getFileDownloadUrl, getProjectFiles } from "./actions";
 import { getProjects } from "../actions";
 import FileUploadComponent from "./components/FileUploadComponent";
 import FileItemComponent from "./components/FIleItemComponent";
@@ -47,7 +47,21 @@ const Page = () => {
 
   const handleDownload = async (fileName: string) => {
     try {
-      await downloadFile(projectId, fileName);
+      const downloadUrl = await getFileDownloadUrl(projectId, fileName);
+
+      const response = await fetch(downloadUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to download file: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+
+      const link = document.createElement("a");
+      link.href = window.URL.createObjectURL(blob);
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     } catch (error) {
       console.error("Failed to download file:", error);
     }
