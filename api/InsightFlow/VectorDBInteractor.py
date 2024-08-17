@@ -146,7 +146,20 @@ class VectorDBInteractor:
         streaming_response = query_engine.query(query)
         return streaming_response
 
-    def search(self, project_id: str, query: Dict[str, str] = None, count: int = 40):
+    def get_base_query(self,project_id:str):
+        base_query = (
+            self.supabase_client
+            .schema("vecs")
+            .from_(project_id)
+            .select(
+                "id, vec, metadata->>note, metadata->tags, metadata->theme, metadata->persona_id, "
+                "metadata->>file_name, metadata->>suitable_for_persona, "
+                "metadata->_node_content"
+            )
+        )
+        return base_query
+    
+    def select_all(self, project_id: str, query: Dict[str, str] = None, count: int = 40):
         """
         Searches the Supabase table for entries matching the query/filter criteria.
 
@@ -160,16 +173,7 @@ class VectorDBInteractor:
         """
 
         # Base query: selecting the required fields without any filters
-        base_query = (
-            self.supabase_client
-            .schema("vecs")
-            .from_(project_id)
-            .select(
-                "id, vec, metadata->>note, metadata->tags, metadata->theme, metadata->persona_id, "
-                "metadata->>file_name, metadata->>suitable_for_persona, "
-                "metadata->_node_content"
-            )
-        )
+        base_query = self.get_base_query(project_id=project_id)
 
         # Apply user-specified filters
         if query:
@@ -191,9 +195,6 @@ class VectorDBInteractor:
         except Exception as e:
             print(f"An error occurred: {e}")
             return None
-
-    async def update(self, project_id: str, new_metadata):
-        pass
 
     async def delete(self, project_id: str, filename: str):
         pass

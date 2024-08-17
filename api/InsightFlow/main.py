@@ -326,7 +326,7 @@ def create_theme_insights(project_id: str):
     # Fetch relevant data
     try:
         # Filter necessary data
-        filtered_data = vector_db_interactor.search(project_id)
+        filtered_data = vector_db_interactor.select_all(project_id)
         # TODO:Load it to memory as a pandas dataframe
         # TODO:Run clustering algo
         # TODO:Pick the right k
@@ -342,7 +342,7 @@ def get_theme_insights(project_id: str):
     # Fetch relevant data
     try:
         # Filter necessary data GROUP by theme
-        filtered_data = vector_db_interactor.search(project_id)
+        filtered_data = vector_db_interactor.select_all(project_id)
         return filtered_data
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -353,7 +353,7 @@ def get_all_docs_insights(project_id: str):
     # Fetch relevant data
     try:
         # Filter necessary data
-        filtered_data = vector_db_interactor.search(project_id)
+        filtered_data = vector_db_interactor.select_all(project_id)
         return filtered_data
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
