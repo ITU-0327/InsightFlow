@@ -322,7 +322,7 @@ def download_file(project_id: str, file_name: str):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.post("/api/projects/{project_id}/ingest/")
+@app.get("/api/projects/{project_id}/ingest/")
 async def ingest_data(project_id: str):
     # Fetch file URLs
     file_urls = []
@@ -361,11 +361,11 @@ async def ingest_data(project_id: str):
                 .in_("file_url", file_url)
                 .execute()
             )
-            if update_response.error:
-                raise Exception(update_response.error.message)
-            yield "data: Files status updated to ingested\n\n"
+            yield "data: Files status updated to ingested"
         except Exception as e:
             yield f"data: An error occurred while updating file statuses: {e}\n\n"
+
+        yield "data: Ingestion complete\n\n"
 
     # Use StreamingResponse to stream data
     return StreamingResponse(event_generator(), media_type="text/event-stream")
