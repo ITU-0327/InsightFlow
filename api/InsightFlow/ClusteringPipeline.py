@@ -12,7 +12,7 @@ class ClusteringPipeline:
         df = self._load_data(project_id)
         df = self._run_clustering(df)
         df = self._label_clusters(df=df, column_name="Theme")
-        print(df)
+        # print(df)
         await self._update_vector_db_theme(df,project_id)
         return True
 

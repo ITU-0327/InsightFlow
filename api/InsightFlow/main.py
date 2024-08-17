@@ -335,9 +335,11 @@ def get_theme_insights(project_id: str):
     # Fetch relevant data
     try:
         # Filter necessary data GROUP by theme
-        filtered_data = vector_db_interactor.select_all(project_id)
+        filtered_data = vector_db_interactor.select_group_by_themes(project_id)
+        # print(filtered_data)
         return filtered_data
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=400, detail=str(e))
 
 

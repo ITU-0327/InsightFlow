@@ -192,6 +192,74 @@ class VectorDBInteractor:
         except Exception as e:
             print(f"An error occurred: {e}")
             return None
+    
+    def select_group_by_themes(self, project_id: str, cluster_notes_limit: int = 10):
+        """
+        Groups and retrieves a limited number of records for each theme.
+
+        Args:
+            project_id (str): The ID of the project or table to search within.
+            cluster_notes_limit (int, optional): The maximum number of results to return per theme.
+
+        Returns:
+            dict: A dictionary where keys are themes and values are lists of records.
+        """
+        grouped_results = {}
+        
+        try:
+            # Query only with non-null theme and cluster_id, group by theme
+            base_query = (
+                self.supabase_client
+                .schema("vecs")
+                .from_(project_id)
+                .select(
+                    "id, theme, cluster_id, persona_id, metadata->>note, metadata->tags, metadata->theme, metadata->persona_id, "
+                    "metadata->>file_name, metadata->>suitable_for_persona"
+                )
+                .filter("theme","neq","")
+            )
+
+            # Get distinct themes
+            response = (
+                self.supabase_client
+                .schema("vecs")
+                .from_(project_id)
+                .select("cluster_id, theme")
+                .execute()
+            )
+            
+            unique_clusters = {}
+            for item in response.data:
+                if item['cluster_id']:  # Ensure cluster_id is present
+                    unique_clusters[item['cluster_id']] = item['theme']
+
+            # Convert the dictionary to a list of dictionaries or tuples if needed
+            clusters = [{'cluster_id': cluster_id, 'theme': theme} for cluster_id, theme in unique_clusters.items()]
+
+            print(clusters)
+            for cluster in clusters:
+                # For each theme, limit the results to the specified number
+                notes = self.get_cluster_notes(project_id,cluster_id=cluster['cluster_id'])
+                
+                grouped_results[cluster['theme']] = notes if notes else []
+        except Exception as e:
+            print(f"An error occurred: {e}")
+        
+        return grouped_results
+
+    def get_cluster_notes(self,project_id,cluster_id, count=10):
+        query = (
+                self.supabase_client
+                .schema("vecs")
+                .from_(project_id)
+                .select(
+                    "id, theme, cluster_id, persona_id, metadata->>note, metadata->tags, metadata->theme, metadata->persona_id, "
+                    "metadata->>file_name, metadata->>suitable_for_persona"
+                )
+                .filter("theme","neq","")
+                .eq("cluster_id",cluster_id)
+            )
+        return query.execute()
 
     async def batch_update(self, df: pd.DataFrame, project_id: str, update_columns: Dict[str, str], match_column: str):
         """
