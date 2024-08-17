@@ -1,8 +1,12 @@
 import os
 import shutil
-from tempfile import gettempdir
-from typing import List, Optional, Dict
+import psycopg2
+import json
 from supabase import Client
+from tempfile import gettempdir
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict
+from InsightFlow.utils import _download_file
 
 from llama_index.core.ingestion import IngestionPipeline
 from llama_index.core.query_engine import RetrieverQueryEngine
@@ -12,9 +16,6 @@ from llama_index.core import SimpleDirectoryReader, get_response_synthesizer, Ve
 from llama_index.readers.file import PDFReader, CSVReader
 from llama_index.program.openai import OpenAIPydanticProgram
 from llama_index.vector_stores.supabase import SupabaseVectorStore
-
-from pydantic import BaseModel, Field
-from InsightFlow.utils import _download_file
 
 from dotenv import load_dotenv
 
@@ -107,17 +108,14 @@ class VectorDBInteractor:
         yield "Preparing insights"
 
         # remove all locally stored data
-        # Cleanup
         shutil.rmtree(ingestion_path)
         print("deleted", ingestion_path)
         yield f"{len(docs)} Insights ready"
 
     async def rag_query(self, query: str, project_id: str, filters: Optional[Dict[str, str]] = None):
         # https://docs.llamaindex.ai/en/stable/examples/vector_stores/Qdrant_metadata_filter/
-
         metadata_filters = None  # TODO: need to transform JSON into MetadataFilters
         if self.vector_store is None:
-            print(self.vector_store, "vec")
             self.vector_store = SupabaseVectorStore(
                 postgres_connection_string=SUPABASE_DB_CONN,
                 collection_name=project_id,  # Project ID
@@ -159,13 +157,12 @@ class VectorDBInteractor:
         )
         return base_query
 
-    def select_all(self, project_id: str, query: Dict[str, str] = None, count: int = 40):
+    def select_all(self, project_id: str, count: int = 40):
         """
         Searches the Supabase table for entries matching the query/filter criteria.
 
         Args:
             project_id (str): The ID of the project or table to search within.
-            query (Dict[str, str], optional): A dictionary containing additional filtering conditions.
             count (int, optional): The maximum number of results to return.
 
         Returns:
@@ -191,59 +188,67 @@ class VectorDBInteractor:
             print(f"An error occurred: {e}")
             return None
 
-    def select_group_by_themes(self, project_id: str):
-        """
-        Groups and retrieves a limited number of records for each theme.
-
-        Args:
-            project_id (str): The ID of the project or table to search within.
-
-        Returns:
-            dict: A dictionary where keys are themes and values are lists of records.
-        """
+    @staticmethod
+    def select_group_by_themes(project_id: str, limit_per_theme: int = 10):
         grouped_results = {}
 
+        sql_query = f"""
+        WITH RankedNotes AS (
+            SELECT
+                cluster_id,
+                theme,
+                metadata->>'note' AS note,
+                metadata->'tags' AS tags,
+                metadata->>'file_name' AS file_name,
+                metadata->>'_node_content' AS node_content,
+                ROW_NUMBER() OVER (PARTITION BY theme ORDER BY cluster_id) AS rn
+            FROM vecs."{project_id}"
+            WHERE theme IS NOT NULL AND theme <> ''
+        )
+        SELECT
+            cluster_id,
+            theme,
+            note,
+            tags,
+            file_name,
+            node_content
+        FROM RankedNotes
+        WHERE rn <= %s;
+        """
+
         try:
-            # Get distinct themes
-            response = (
-                self.supabase_client
-                .schema("vecs")
-                .from_(project_id)
-                .select("cluster_id, theme")
-                .execute()
-            )
+            # Connect to PostgresSQL
+            conn = psycopg2.connect(dsn=SUPABASE_DB_CONN)
+            cursor = conn.cursor()
 
-            unique_clusters = {}
-            for item in response.data:
-                if item['cluster_id']:  # Ensure cluster_id is present
-                    unique_clusters[item['cluster_id']] = item['theme']
+            # Execute the query
+            cursor.execute(sql_query, (limit_per_theme,))
+            rows = cursor.fetchall()
 
-            # Convert the dictionary to a list of dictionaries or tuples if needed
-            clusters = [{'cluster_id': cluster_id, 'theme': theme} for cluster_id, theme in unique_clusters.items()]
+            # Organize the results into grouped_results dictionary
+            for row in rows:
+                theme = row[1]  # Access by index
+                if theme not in grouped_results:
+                    grouped_results[theme] = {"data": []}
 
-            print(clusters)
-            for cluster in clusters:
-                # For each theme, limit the results to the specified number
-                notes = self.get_cluster_notes(project_id, cluster_id=cluster['cluster_id'])
+                # Parse the `_node_content` JSON and extract the `text` field
+                node_content = json.loads(row[5])
+                text_content = node_content.get('text', '')  # Extract the 'text' field
 
-                grouped_results[cluster['theme']] = notes if notes else []
+                # Add the row data to the grouped_results dictionary
+                grouped_results[theme]["data"].append({
+                    "theme": row[1],
+                    "note": row[2],
+                    "tags": row[3],
+                    "file_name": row[4],
+                    "text_content": text_content  # Add the extracted text content
+                })
+
+            # Close the connection
+            cursor.close()
+            conn.close()
+
         except Exception as e:
             print(f"An error occurred: {e}")
 
         return grouped_results
-
-    def get_cluster_notes(self, project_id, cluster_id, count=10):
-        query = (
-            self.supabase_client
-            .schema("vecs")
-            .from_(project_id)
-            .select(
-                "id, theme, cluster_id, persona_id, "
-                "metadata->>note, metadata->tags, metadata->theme, metadata->persona_id,"
-                "metadata->>file_name, metadata->>suitable_for_persona"
-            )
-            .filter("theme", "neq", "")
-            .eq("cluster_id", cluster_id)
-            .limit(count)
-        )
-        return query.execute()

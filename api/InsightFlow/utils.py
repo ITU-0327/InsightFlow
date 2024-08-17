@@ -99,6 +99,4 @@ def openai_summary(system_prompt, user_prompt, response_model=DefaultResponse):
             ],
             response_format=response_model,  # Use the defined schema
         )
-    print(completion)
-    
     return completion.choices[0].message.parsed
