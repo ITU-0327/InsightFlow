@@ -7,7 +7,7 @@ export const uploadFile = async (file: File, projectId: string) => {
     formData.append("file", file);
 
     const response = await fetch(
-      `${backend}/projects/${projectId}/files/`, // TODO: dont know how to hide this thing
+      `${backend}/projects/${projectId}/files/`,
       {
         method: "POST",
         body: formData,
