@@ -34,6 +34,7 @@ app.add_middleware(
 )
 
 vector_db_interactor = VectorDBInteractor(supabase_client=supabase)
+pipeline = ClusteringPipeline(vector_db_interactor, supabase)
 
 
 # Define the ProjectDetails schema
@@ -248,8 +249,14 @@ def delete_file(project_id: str, file_name: str):
         file_path = f"{project_id}/{file_name}"
 
         # Check if the file exists in the database
-        file = supabase.schema("public").from_("files").select("id").eq("project_id", project_id).eq("file_name",
-                                                                                                     file_name).execute()
+        file = (
+            supabase
+            .schema("public")
+            .from_("files")
+            .select("id")
+            .eq("project_id", project_id)
+            .eq("file_name", file_name).execute()
+        )
         if not file.data:
             raise HTTPException(status_code=404, detail="File not found in the database")
 
@@ -319,8 +326,15 @@ async def ingest_data(project_id: str):
     # Fetch file URLs
     file_urls = []
     try:
-        files = supabase.schema("public").from_("files").select("file_url").eq("project_id", project_id).eq("ingested",
-                                                                                                            False).execute()
+        files = (
+            supabase
+            .schema("public")
+            .from_("files")
+            .select("file_url")
+            .eq("project_id", project_id)
+            .eq("ingested", False)
+            .execute()
+        )
         file_urls = [file['file_url'] for file in files.data]
     except Exception as e:
         print(f"An error occurred while fetching file URLs: {e}")
@@ -339,12 +353,9 @@ async def ingest_data(project_id: str):
 async def create_theme_insights(project_id: str):
     # Fetch relevant data
     try:
-        # Filter necessary data
-        pipeline = ClusteringPipeline(vector_db_interactor)
         await pipeline.run_theme_clustering_pipeline(project_id=project_id)
         return {"message": "Update successful"}
     except Exception as e:
-        print(e)
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -354,11 +365,32 @@ def get_theme_insights(project_id: str):
     try:
         # Filter necessary data GROUP by theme
         filtered_data = vector_db_interactor.select_group_by_themes(project_id)
-        # print(filtered_data)
         return filtered_data
     except Exception as e:
-        print(e)
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/projects/{project_id}/personas/")
+async def create_persona_insights(project_id: str):
+    # Fetch relevant data
+    try:
+        await pipeline.run_persona_clustering_pipeline(project_id=project_id)
+        return {"message": "Update successful"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# @app.get("/api/projects/{project_id}/personas/")
+# def get_persona_insights(project_id: str):
+#     # Fetch relevant data
+#     try:
+#         # Filter necessary data GROUP by theme
+#         filtered_data = vector_db_interactor.select_group_by_themes(project_id)
+#         # print(filtered_data)
+#         return filtered_data
+#     except Exception as e:
+#         print(e)
+#         raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.get("/api/projects/{project_id}/insights/docs")
