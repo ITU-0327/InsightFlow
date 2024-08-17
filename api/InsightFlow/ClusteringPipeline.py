@@ -82,11 +82,11 @@ class ClusteringPipeline:
         return df
 
     def _generate_open_ai_summary_for_theme(self, notes):
-        # response = openai_summary(
-        #     system_prompt="You are an expert UX researcher. You will be given a notes cluster for affinity mapping and should write a theme (no more than 20 words) that's useful for UX",
-        #     user_prompt=notes
-        # )
-        return "response.response"
+        response = openai_summary(
+            system_prompt="You are an expert UX researcher. You will be given a notes cluster for affinity mapping and should write a theme (no more than 20 words) that's useful for UX",
+            user_prompt=notes
+        )
+        return response.response
 
 
     async def _update_vector_db_theme(self, df, project_id):
