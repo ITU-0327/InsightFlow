@@ -1,7 +1,9 @@
+import asyncio
 import os
 import shutil
 from tempfile import gettempdir
 from typing import List, Optional, Dict
+import pandas as pd
 from supabase import Client
 
 from llama_index.core.ingestion import IngestionPipeline
@@ -98,7 +100,7 @@ class VectorDBInteractor:
 
         yield "Extracting Insights ... this might take a while"
         print("running pipeline")
-        docs = await pipeline.arun(documents=downloaded_documents, num_workers=4)
+        docs = await pipeline.arun(documents=downloaded_documents, num_workers=10)
 
         print("building index")
 
@@ -152,7 +154,7 @@ class VectorDBInteractor:
             .schema("vecs")
             .from_(project_id)
             .select(
-                "id, vec, metadata->>note, metadata->tags, metadata->theme, metadata->persona_id, "
+                "id, vec, theme, cluster_id, persona_id, metadata->>note, metadata->tags, metadata->theme, metadata->persona_id, "
                 "metadata->>file_name, metadata->>suitable_for_persona, "
                 "metadata->_node_content"
             )
@@ -191,5 +193,31 @@ class VectorDBInteractor:
             print(f"An error occurred: {e}")
             return None
 
+    async def batch_update(self, df: pd.DataFrame, project_id: str, update_columns: Dict[str, str], match_column: str):
+        """
+        Updates records in the Supabase database based on the DataFrame asynchronously.
+
+        Args:
+            df (pd.DataFrame): The DataFrame containing the updated information.
+            project_id (str): The project ID to specify the table to update.
+            update_columns (Dict[str, str]): A dictionary mapping DataFrame column names to Supabase column names.
+            match_column (str): The column name in the DataFrame to match with the Supabase records.
+        """
+        print("Updating batch data asynchronously...")
+        
+        async def update_record(row):
+            update_data = {supabase_col: row[df_col] for df_col, supabase_col in update_columns.items()}
+            print(f"Updating: {update_data}")
+            
+            response = await self.supabase_client \
+                .schema("vecs") \
+                .from_(project_id) \
+                .update(update_data) \
+                .eq("id", row.get(match_column)) \
+                .execute()
+
+        tasks = [update_record(row) for _, row in df.iterrows()]
+        await asyncio.gather(*tasks)
+    
     async def delete(self, project_id: str, filename: str):
         pass

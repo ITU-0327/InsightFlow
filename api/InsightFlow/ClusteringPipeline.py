@@ -2,16 +2,19 @@ from InsightFlow.VectorDBInteractor import VectorDBInteractor
 import pandas as pd
 import numpy as np
 from sklearn.cluster import KMeans
+from InsightFlow.utils import openai_summary
 
 class ClusteringPipeline:
     def __init__(self, vector_db_interactor: VectorDBInteractor):
         self.vector_db_interactor = vector_db_interactor
 
-    def run_theme_clustering_pipeline(self, project_id):
+    async def run_theme_clustering_pipeline(self, project_id):
         df = self._load_data(project_id)
         df = self._run_clustering(df)
-        # df = self._label_theme_clusters(df)
-        # self._update_vector_db(df)
+        df = self._label_clusters(df=df, column_name="Theme")
+        print(df)
+        await self._update_vector_db_theme(df,project_id)
+        return True
 
     def run_persona_clustering_pipeline(self, project_id):
         df = self._load_data(project_id,suitable_for_persona="true")
@@ -62,28 +65,36 @@ class ClusteringPipeline:
     # def _label_persona_clusters(self, df):
     #     return self._label_clusters(df, column_name='Persona')
 
-    # def _label_clusters(self, df, column_name):
-    #     cluster_notes = df.groupby('Cluster')['note'].apply(lambda notes: ' '.join(notes)).reset_index()
+    def _label_clusters(self, df, column_name):
+        print(" _label_clusters")
+        cluster_notes = df.groupby('Cluster')['note'].apply(lambda notes: ' '.join(notes)).reset_index()
 
-    #     cluster_notes[column_name] = cluster_notes['note'].apply(self._generate_open_ai_summary)
+        # I want to make this async so its faster
+        label = [self._generate_open_ai_summary_for_theme(notes) for notes in cluster_notes['note']]
 
-    #     theme_map = dict(zip(cluster_notes['Cluster'], cluster_notes[column_name]))
-    #     df[column_name.lower()] = df['Cluster'].map(theme_map)
+        cluster_notes[column_name] = label
+        print(cluster_notes)
         
-    #     return df
+        # mapping
+        theme_map = dict(zip(cluster_notes['Cluster'], cluster_notes[column_name]))
+        df[column_name] = df['Cluster'].map(theme_map)
+        
+        return df
 
-    # def _generate_open_ai_summary(self, notes):
-    #     response = OpenAI().ChatCompletion.create(
-    #         model="gpt-3.5-turbo",
-    #         messages=[
-    #             {"role": "user", "content": f"Summarize the following notes: {notes}"}
-    #         ]
-    #     )
-    #     return response.choices[0].message["content"].strip()
+    def _generate_open_ai_summary_for_theme(self, notes):
+        # response = openai_summary(
+        #     system_prompt="You are an expert UX researcher. You will be given a notes cluster for affinity mapping and should write a theme (no more than 20 words) that's useful for UX",
+        #     user_prompt=notes
+        # )
+        return "response.response"
 
-    # def _update_vector_db(self, df):
-    #     for index, row in df.iterrows():
-    #         response = self.vector_db_interactor.supabase_client.table(row["project_id"]).update({
-    #             "theme": row["theme"],
-    #             "clusterid": row["Cluster"]
-    #         }).eq("id", row["id"]).execute()
+
+    async def _update_vector_db_theme(self, df, project_id):
+        print(" _update_vector_db_theme")
+        update_columns = {
+            "Theme": "theme",
+            "Cluster": "cluster_id"
+        }
+        match_column = "id"
+        await self.vector_db_interactor.batch_update(df,project_id,update_columns,match_column)
+        
