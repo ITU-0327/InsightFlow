@@ -88,7 +88,8 @@ async def _download_file(url: str, dest_folder: str):
 
 class DefaultResponse(BaseModel):
     response: str
- 
+
+
 def openai_summary(system_prompt, user_prompt, response_model=DefaultResponse):
     completion = openai.beta.chat.completions.parse(
             model="gpt-4o-2024-08-06",  # Replace it with the appropriate model version

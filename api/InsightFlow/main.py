@@ -10,7 +10,6 @@ import os
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse
 from InsightFlow.VectorDBInteractor import VectorDBInteractor
-from openai import OpenAI
 from pydantic import BaseModel
 from InsightFlow.utils import file_name_formatter, create_project_vec_table, openai_summary
 from InsightFlow.ClusteringPipeline import ClusteringPipeline
@@ -69,8 +68,11 @@ async def create_project(user_id: str = Form(...), file: UploadFile = File(...))
         # Extract text from the PDF
         extracted_text = pdf_reader.load_data(temp_file_path)[0].text
 
-        project_details = openai_summary(system_prompt="You are an expert at structured data extraction. You will be given unstructured text from a business system description and should convert it into the given structure."
-                                         , user_prompt=extracted_text, response_model=ProjectDetails)
+        project_details = openai_summary(system_prompt="You are an expert at structured data extraction. You will be "
+                                                       "given unstructured text from a business system description "
+                                                       "and should convert it into the given structure.",
+                                         user_prompt=extracted_text,
+                                         response_model=ProjectDetails)
 
         # Step 3: Insert the project into the database
         project = supabase.schema("public").from_("projects").insert(
@@ -137,7 +139,8 @@ async def upload_file(project_id: str, file: UploadFile = File(...)):
         file_content = await file.read()
 
         # Check if the file already exists in the database
-        existing_file = supabase.schema("public").from_("files").select("id").eq("project_id", project_id).eq("file_name", file.filename).execute()
+        existing_file = supabase.schema("public").from_("files").select("id").eq("project_id", project_id).eq(
+            "file_name", file.filename).execute()
 
         current_time = datetime.now(timezone.utc).isoformat()
 
@@ -201,7 +204,8 @@ def get_project_files(project_id: str):
         HTTPException: If there is an issue retrieving the files from the database.
     """
     try:
-        files = supabase.schema("public").from_("files").select("file_name, file_url, last_update_time").eq("project_id", project_id).execute()
+        files = supabase.schema("public").from_("files").select("file_name, file_url, last_update_time").eq(
+            "project_id", project_id).execute()
         return files.data
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -226,7 +230,8 @@ def delete_file(project_id: str, file_name: str):
         file_path = f"{project_id}/{file_name}"
 
         # Check if the file exists in the database
-        file = supabase.schema("public").from_("files").select("id").eq("project_id", project_id).eq("file_name", file_name).execute()
+        file = supabase.schema("public").from_("files").select("id").eq("project_id", project_id).eq("file_name",
+                                                                                                     file_name).execute()
         if not file.data:
             raise HTTPException(status_code=404, detail="File not found in the database")
 
@@ -240,7 +245,8 @@ def delete_file(project_id: str, file_name: str):
         supabase.storage.from_("file-storage").remove([file_path])
 
         # Delete the file record from the database
-        supabase.schema("public").from_("files").delete().eq("project_id", project_id).eq("file_name", file_name).execute()
+        supabase.schema("public").from_("files").delete().eq("project_id", project_id).eq("file_name",
+                                                                                          file_name).execute()
 
         return {"message": "File deleted successfully!"}
 
@@ -295,7 +301,8 @@ async def ingest_data(project_id: str):
     # Fetch file URLs
     file_urls = []
     try:
-        files = supabase.schema("public").from_("files").select("file_url").eq("project_id", project_id).eq("ingested", False).execute()
+        files = supabase.schema("public").from_("files").select("file_url").eq("project_id", project_id).eq("ingested",
+                                                                                                            False).execute()
         file_urls = [file['file_url'] for file in files.data]
     except Exception as e:
         print(f"An error occurred while fetching file URLs: {e}")
