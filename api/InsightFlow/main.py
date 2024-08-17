@@ -201,6 +201,7 @@ async def upload_file(project_id: str, file: UploadFile = File(...)):
 
         return {"message": "File uploaded successfully!", "file_url": file_url}
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -342,8 +343,29 @@ async def ingest_data(project_id: str):
 
     # Define the event generator function
     async def event_generator():
+        if not file_urls:
+            yield "data: No new files to ingest.\n\n"
+            return  # Exit the generator early
+
         async for message in vector_db_interactor.ingest_data(file_urls, project_id):
             yield f"data: {message}\n\n"
+
+        # After ingestion is done, update the `ingested` status in the database
+        try:
+            file_url = [file['file_url'] for file in files.data]
+            update_response = (
+                supabase
+                .schema("public")
+                .from_("files")
+                .update({"ingested": True})
+                .in_("file_url", file_url)
+                .execute()
+            )
+            if update_response.error:
+                raise Exception(update_response.error.message)
+            yield "data: Files status updated to ingested\n\n"
+        except Exception as e:
+            yield f"data: An error occurred while updating file statuses: {e}\n\n"
 
     # Use StreamingResponse to stream data
     return StreamingResponse(event_generator(), media_type="text/event-stream")
@@ -387,7 +409,8 @@ def get_persona_insights(project_id: str):
             supabase
             .schema("public")
             .from_("personas")
-            .select("name, persona_title, demographics, behavior_patterns, pain_points, goals, motivations, key_notes")
+            .select("id, name, persona_title, demographics, behavior_patterns, pain_points, goals, motivations, "
+                    "key_notes")
             .eq("project_id", project_id)
             .execute()
         )
