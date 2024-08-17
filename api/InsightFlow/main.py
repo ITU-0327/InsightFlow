@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse
 from InsightFlow.VectorDBInteractor import VectorDBInteractor
 from pydantic import BaseModel
-from InsightFlow.utils import file_name_formatter, create_project_vec_table, openai_summary
+from InsightFlow.utils import file_name_formatter, create_project_vec_table, openai_summary, select_group_by_themes
 from InsightFlow.ClusteringPipeline import ClusteringPipeline
 
 load_dotenv(".env.local")
@@ -364,7 +364,7 @@ def get_theme_insights(project_id: str):
     # Fetch relevant data
     try:
         # Filter necessary data GROUP by theme
-        filtered_data = vector_db_interactor.select_group_by_themes(project_id)
+        filtered_data = select_group_by_themes(project_id)
         return filtered_data
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -380,17 +380,20 @@ async def create_persona_insights(project_id: str):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-# @app.get("/api/projects/{project_id}/personas/")
-# def get_persona_insights(project_id: str):
-#     # Fetch relevant data
-#     try:
-#         # Filter necessary data GROUP by theme
-#         filtered_data = vector_db_interactor.select_group_by_themes(project_id)
-#         # print(filtered_data)
-#         return filtered_data
-#     except Exception as e:
-#         print(e)
-#         raise HTTPException(status_code=400, detail=str(e))
+@app.get("/api/projects/{project_id}/personas/")
+def get_persona_insights(project_id: str):
+    try:
+        personas = (
+            supabase
+            .schema("public")
+            .from_("personas")
+            .select("name, persona_title, demographics, behavior_patterns, pain_points, goals, motivations, key_notes")
+            .eq("project_id", project_id)
+            .execute()
+        )
+        return personas
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.get("/api/projects/{project_id}/insights/docs")

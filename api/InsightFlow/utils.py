@@ -1,3 +1,4 @@
+import json
 import re
 import os
 import aiohttp
@@ -100,3 +101,68 @@ def openai_summary(system_prompt, user_prompt, response_model=DefaultResponse):
             response_format=response_model,  # Use the defined schema
         )
     return completion.choices[0].message.parsed
+
+
+def select_group_by_themes(project_id: str, limit_per_theme: int = 10):
+    grouped_results = {}
+
+    sql_query = f"""
+    WITH RankedNotes AS (
+        SELECT
+            cluster_id,
+            theme,
+            metadata->>'note' AS note,
+            metadata->'tags' AS tags,
+            metadata->>'file_name' AS file_name,
+            metadata->>'_node_content' AS node_content,
+            ROW_NUMBER() OVER (PARTITION BY theme ORDER BY cluster_id) AS rn
+        FROM vecs."{project_id}"
+        WHERE theme IS NOT NULL AND theme <> ''
+    )
+    SELECT
+        cluster_id,
+        theme,
+        note,
+        tags,
+        file_name,
+        node_content
+    FROM RankedNotes
+    WHERE rn <= %s;
+    """
+
+    try:
+        # Connect to PostgresSQL
+        conn = psycopg2.connect(dsn=SUPABASE_DB_CONN)
+        cursor = conn.cursor()
+
+        # Execute the query
+        cursor.execute(sql_query, (limit_per_theme,))
+        rows = cursor.fetchall()
+
+        # Organize the results into grouped_results dictionary
+        for row in rows:
+            theme = row[1]  # Access by index
+            if theme not in grouped_results:
+                grouped_results[theme] = {"data": []}
+
+            # Parse the `_node_content` JSON and extract the `text` field
+            node_content = json.loads(row[5])
+            text_content = node_content.get('text', '')  # Extract the 'text' field
+
+            # Add the row data to the grouped_results dictionary
+            grouped_results[theme]["data"].append({
+                "theme": row[1],
+                "note": row[2],
+                "tags": row[3],
+                "file_name": row[4],
+                "text_content": text_content  # Add the extracted text content
+            })
+
+        # Close the connection
+        cursor.close()
+        conn.close()
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+    return grouped_results
