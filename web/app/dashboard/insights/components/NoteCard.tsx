@@ -7,6 +7,7 @@ import useClipboard from "../../hooks/use-copy-to-clipboard";
 import { IconCopy, IconCopyCheck, IconEye } from "@tabler/icons-react";
 import Modal from "./Modal";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 interface NoteCardProps {
   note: InsightNote;
@@ -20,7 +21,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, className }) => {
   const [isModalOpen, setModalOpen] = useState<boolean>(false);
 
   const handleViewClick = () => {
-    setModalOpen(true); // Open the modal when copying
+    setModalOpen(true); // Open the modal when clicking
   };
 
   const handleCloseModal = () => {
@@ -73,16 +74,33 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, className }) => {
         </button>
       </div>
 
-      {/* Modal component */}
+      {/* Modal component with animation */}
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         content={
-          <div className="max-h-[550px]">
+          <motion.div
+            className="max-h-[550px] p-4 bg-white rounded-md shadow-lg"
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            transition={{ duration: 0.3 }}
+          >
             <p>{note.fullText}</p>
-          </div>
+          </motion.div>
         }
       />
+      {/* Background overlay */}
+      {isModalOpen && (
+        <motion.div
+          className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          onClick={handleCloseModal} // Close modal on background click
+        />
+      )}
     </BaseCard>
   );
 };

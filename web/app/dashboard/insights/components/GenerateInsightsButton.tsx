@@ -4,8 +4,10 @@ import useSSE from "../../hooks/use-sse";
 import { generateInsights } from "../actions";
 import { useAuth } from "../../hooks/use-auth";
 import { getProjects } from "../../actions";
+import { usePathname } from "next/navigation";
 
 const GenerateInsightsButton = () => {
+  const pathname = usePathname(); // Get the router object
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<string[]>([]);
   const [projectId, setProjectId] = useState<string>("");
@@ -55,8 +57,8 @@ const GenerateInsightsButton = () => {
         setLoading(false);
       }
     }
-  };
-
+  }; // Check if current path is not /dashboard/insights/
+  if (pathname !== "/dashboard/insights") return <></>;
   return (
     <div className="">
       <button
@@ -66,7 +68,7 @@ const GenerateInsightsButton = () => {
             ? "bg-gray-500 cursor-not-allowed"
             : "bg-purple-500 hover:bg-purple-600"
         }`}
-        disabled={loading}
+        disabled={loading} // Disable button if loading or path is not /dashboard/insights/
       >
         {loading ? "Generating Insights..." : "Generate Insights ✨"}
       </button>
