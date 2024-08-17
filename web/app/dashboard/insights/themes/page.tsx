@@ -6,6 +6,7 @@ import { useAuth } from "../../hooks/use-auth";
 import { InsightNote } from "../insight.model";
 import { ProjectTheme, getProjectThemes } from "./actions";
 import ThemeAccordion from "./components/ThemeAccordion";
+import LoadingCard from "@/components/ui/card-loading";
 
 const page = () => {
   const [loading, setLoading] = useState(false);
@@ -34,13 +35,20 @@ const page = () => {
 
   return (
     <div>
-      {insightThemes.map((theme, index) => (
-        <ThemeAccordion
-          key={theme.theme}
-          theme={theme.theme}
-          notes={theme.notes}
-        />
-      ))}
+      {loading ? (
+        <div className="flex gap-2 flex-col">
+          <LoadingCard />
+          <LoadingCard />
+        </div>
+      ) : (
+        insightThemes.map((theme, index) => (
+          <ThemeAccordion
+            key={theme.theme}
+            theme={theme.theme}
+            notes={theme.notes}
+          />
+        ))
+      )}
     </div>
   );
 };
