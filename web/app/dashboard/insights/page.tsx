@@ -8,6 +8,7 @@ import { MasonryLayout } from "./components/MasonryLayout";
 import { revalidatePath } from "next/cache";
 import LoadingCard from "@/components/ui/card-loading";
 import { useAuth } from "../hooks/use-auth";
+import Image from "next/image";
 
 const Page = () => {
   const [loading, setLoading] = useState(false);
@@ -32,6 +33,17 @@ const Page = () => {
   useEffect(() => {
     fetchInsights();
   }, []);
+  if (insightNotes.length === 0 && !loading) {
+    return (
+      <Image
+        src="/images/insights-placeholder.jpg"
+        width={1000}
+        height={900}
+        alt="Picture of the author"
+        className="mx-auto"
+      />
+    );
+  }
 
   return (
     <div>

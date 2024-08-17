@@ -7,8 +7,12 @@ import { getProjects } from "./actions";
 import { Project } from "@/models/Project";
 import React from "react";
 import LoadingCard from "@/components/ui/card-loading";
-import {uploadFile, upsertProject} from "./upload-file-helpder";
+import { uploadFile, upsertProject } from "./upload-file-helpder";
 import { useAuth } from "./hooks/use-auth";
+import { BentoCard, BentoGrid } from "@/components/magicui/bento-grid";
+import Image from "next/image";
+import { ChatBubbleIcon } from "@radix-ui/react-icons";
+import { BentoGridPreview } from "./components/BentoGridPreview";
 
 // Dynamically import the ProjectCard component with suspense
 const ProjectCard = dynamic(() => import("./components/ProjectCard"), {
@@ -55,7 +59,12 @@ const Page = () => {
       projectId = await upsertProject(file, userId, projectId);
 
       if (projectId) {
-        console.log(`${projects.length === 0 ? "New project created" : "Project updated"} with ID:`, projectId);
+        console.log(
+          `${
+            projects.length === 0 ? "New project created" : "Project updated"
+          } with ID:`,
+          projectId
+        );
 
         // Upload the file to the project
         await uploadFile(file, projectId);
@@ -93,13 +102,14 @@ const Page = () => {
         }}
         text={
           uploading
-              ? "Uploading..."
-              : projects.length === 0
-              ? "Drag & drop to upload project description and create a new project..."
-              : "Drag & drop to update project description..."
+            ? "Uploading..."
+            : projects.length === 0
+            ? "Drag & drop to upload project description and create a new project..."
+            : "Drag & drop to update project description..."
         }
         disabled={uploading} // Disable dropzone during upload
       />
+      <BentoGridPreview />
     </div>
   );
 };
