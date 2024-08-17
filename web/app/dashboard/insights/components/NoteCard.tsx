@@ -6,12 +6,14 @@ import BaseCard from "@/components/ui/card";
 import useClipboard from "../../hooks/use-copy-to-clipboard";
 import { IconCopy, IconCopyCheck, IconEye } from "@tabler/icons-react";
 import Modal from "./Modal";
+import { cn } from "@/lib/utils";
 
 interface NoteCardProps {
   note: InsightNote;
+  className?: string;
 }
 
-const NoteCard: React.FC<NoteCardProps> = ({ note }) => {
+const NoteCard: React.FC<NoteCardProps> = ({ note, className }) => {
   const fileType = getFileType(note.source);
   const { copied, copyToClipboard } = useClipboard();
   const icon = getFileIcon(fileType);
@@ -26,7 +28,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note }) => {
   };
 
   return (
-    <BaseCard className="m-3 max-w-md h-auto p-4">
+    <BaseCard className={cn("m-3 max-w-md h-auto p-4", className)}>
       <div className="text-gray-700 mb-5">
         <p className="text-lg">{note.note}</p>
       </div>

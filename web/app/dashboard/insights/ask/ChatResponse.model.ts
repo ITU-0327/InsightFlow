@@ -1,6 +1,6 @@
 import { InsightNote } from "../insight.model";
 
 export interface ChatResponse {
-  metadata: InsightNote[] | undefined;
+  metadata: Object;
   response: string;
 }
