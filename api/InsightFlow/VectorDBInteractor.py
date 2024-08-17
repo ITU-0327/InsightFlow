@@ -258,6 +258,7 @@ class VectorDBInteractor:
                 )
                 .filter("theme","neq","")
                 .eq("cluster_id",cluster_id)
+                .limit(count)
             )
         return query.execute()
 
