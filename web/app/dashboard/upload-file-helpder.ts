@@ -24,7 +24,7 @@ export const uploadFile = async (file: File, projectId: string) => {
     console.error("Error uploading file:", error);
   }
 };
-export const createProject = async (file: File, userId: string): Promise<void> => {
+export const createProject = async (file: File, userId: string): Promise<string | null> => {
   const { backend } = useClientConfig();
   console.log("Backend URL:", backend);
   try {
@@ -37,11 +37,16 @@ export const createProject = async (file: File, userId: string): Promise<void> =
       body: formData,
     });
 
-    if (!response.ok) {
+    if (response.ok) {
+      const data = await response.json();
+      const projectId = data.data[0]?.id;  // Extract the project ID from the response
+      console.log("Project created successfully with ID:", projectId);
+      return projectId;
+    } else {
       throw new Error(`Failed to create project: ${response.statusText}`);
     }
   } catch (error) {
     console.error("Error creating project:", error);
-    throw error;
+    return null;
   }
 };
