@@ -1,11 +1,9 @@
 import os
 import shutil
-import psycopg2
-import json
 from supabase import Client
 from tempfile import gettempdir
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict
+from typing import List
 from InsightFlow.utils import _download_file
 
 from llama_index.core.ingestion import IngestionPipeline
@@ -18,7 +16,6 @@ from llama_index.program.openai import OpenAIPydanticProgram
 from llama_index.vector_stores.supabase import SupabaseVectorStore
 from llama_index.core import PromptTemplate
 from llama_index.core.postprocessor import LLMRerank
-
 
 from dotenv import load_dotenv
 
@@ -114,7 +111,7 @@ class VectorDBInteractor:
         print("deleted", ingestion_path)
         yield f"data: {len(docs)} Insights ready\n\n"
 
-    async def rag_query(self, query: str, project_id: str, role_prompt:str ,filters: Optional[Dict[str, str]] = None):
+    async def rag_query(self, query: str, project_id: str, role_prompt: str):
         # https://docs.llamaindex.ai/en/stable/examples/vector_stores/Qdrant_metadata_filter/
         metadata_filters = None  # TODO: need to transform JSON into MetadataFilters
         if self.vector_store is None:
@@ -163,9 +160,9 @@ class VectorDBInteractor:
             retriever=retriever,
             response_synthesizer=response_synthesizer,
             node_postprocessors=[LLMRerank(
-            choice_batch_size=5,
-            top_n=3,
-        )]
+                choice_batch_size=5,
+                top_n=3,
+            )]
         )
         streaming_response = query_engine.query(query)
         return streaming_response

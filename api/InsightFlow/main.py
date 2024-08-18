@@ -431,12 +431,50 @@ def get_all_docs_insights(project_id: str):
 
 
 @app.post("/api/projects/{project_id}/rag_chat/")  # for chatting with persona & themes
-async def rag_chat(project_id: str, query: str, filters: Optional[Dict[str, str]] = None):
-    print(project_id, query)
+async def rag_chat(project_id: str, query: str, persona_id: str = None):
+    print(f"Project ID: {project_id}, Query: {query}, Persona ID: {persona_id}")
     try:
-        # TODO: need to make it streamable
-        role = "You are an expert AI product manager assistant that specialises in product management and UX research"
-        response_stream = await vector_db_interactor.rag_query(query, project_id, role, filters)
+        # Fetch persona data if persona_id is provided
+        if persona_id:
+            response = (
+                supabase
+                .schema("public")
+                .from_("personas")
+                .select(
+                    "name, persona_title, demographics, behavior_patterns, pain_points, goals, motivations, key_notes")
+                .eq("id", persona_id)
+                .single()
+                .execute()
+            )
+
+            persona_data = response.data
+
+            if not persona_data:
+                raise HTTPException(status_code=404, detail="Persona not found")
+
+            persona_summary = (
+                f"Persona Name: {persona_data['name']}\n"
+                f"Title: {persona_data['persona_title']}\n"
+                f"Demographics: {persona_data['demographics']}\n"
+                f"Behavior Patterns: {persona_data['behavior_patterns']}\n"
+                f"Pain Points: {persona_data['pain_points']}\n"
+                f"Goals: {persona_data['goals']}\n"
+                f"Motivations: {persona_data['motivations']}\n"
+                f"Key Notes: {persona_data['key_notes']}"
+            )
+
+            role = (
+                f"You are an AI assistant impersonating {persona_data['name']}, a {persona_data['persona_title']} with "
+                f"the following characteristics:\n{persona_summary}. You will answer as if you were this persona, "
+                "focusing on the persona's specific goals, pain points, and motivations."
+            )
+            response_stream = openai_summary(role, query)
+        else:
+            # If no persona_id is provided, use the general role
+            role = ("You are an expert AI product manager assistant that specializes in product management and UX "
+                    "research. Your task is to provide insightful responses based on the given query.")
+            response_stream = await vector_db_interactor.rag_query(query, project_id, role)
+
         return response_stream
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
