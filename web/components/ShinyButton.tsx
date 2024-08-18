@@ -3,6 +3,7 @@
 import { motion, type AnimationProps } from "framer-motion";
 
 import { cn } from "@/lib/utils";
+import { IconSparkles, IconStar } from "@tabler/icons-react";
 
 const animationProps = {
   initial: { "--x": "100%", scale: 0.8 },
@@ -35,31 +36,16 @@ const ShinyButton = ({
   onClick,
 }: ShinyButtonProps) => {
   return (
-    <motion.button
-      {...animationProps}
+    <button
+      onClick={onClick}
       className={cn(
-        "relative rounded-lg px-6 py-2 font-medium backdrop-blur-xl transition-[box-shadow] duration-300 ease-in-out hover:shadow bg-purple-100 dark:bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/10%)_0%,transparent_60%)] dark:hover:shadow-[0_0_20px_hsl(var(--primary)/10%)]",
+        "inline-flex h-10 animate-shimmer items-center justify-center rounded-md border border-purple-800 bg-[linear-gradient(110deg,#2c0ba3,45%,#805AD5,55%,#2c0ba3)] bg-[length:200%_100%] px-6 font-medium text-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-purple-50",
         className
       )}
-      onClick={onClick}
     >
-      <span
-        className="relative block h-full w-full text-sm uppercase tracking-widen font-semibold text-[rgb(0,0,0,65%)] dark:font-light dark:text-[rgb(255,255,255,90%)]"
-        style={{
-          maskImage:
-            "linear-gradient(-75deg,hsl(265, 98%, 67%) calc(var(--x) + 20%),transparent calc(var(--x) + 30%),hsl(var(--primary)) calc(var(--x) + 100%))",
-        }}
-      >
-        {text}
-      </span>
-      <span
-        style={{
-          mask: "linear-gradient(rgb(0,0,0), rgb(0,0,0)) content-box,linear-gradient(rgb(0,0,0), rgb(0,0,0))",
-          maskComposite: "exclude",
-        }}
-        className="absolute inset-0 z-10 block rounded-[inherit] bg-[linear-gradient(-75deg,hsl(var(--primary)/10%)_calc(var(--x)+20%),hsl(var(--primary)/50%)_calc(var(--x)+25%),hsl(var(--primary)/10%)_calc(var(--x)+100%))] p-px"
-      ></span>
-    </motion.button>
+      {text}
+      <IconSparkles className="ml-1" />
+    </button>
   );
 };
 

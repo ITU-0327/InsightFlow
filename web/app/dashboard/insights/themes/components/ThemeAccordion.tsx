@@ -21,7 +21,6 @@ const pastelGradientLightColors = [
   "indigo-100",
   "red-100",
   "orange-100",
-  "gray-100",
 ];
 
 const ThemeAccordion: React.FC<ThemeAccordionProps> = ({
@@ -64,7 +63,7 @@ const ThemeAccordion: React.FC<ThemeAccordionProps> = ({
     >
       <div
         onClick={() => setOpen(!open)}
-        className={`w-full p-4 cursor-pointer  bg-${randomColor} rounded-b-none rounded-lg text-left bg-gradient-to-b from-white  to-transparent focus:outline-none`}
+        className={`w-full p-4 cursor-pointer bg-${randomColor} rounded-b-none rounded-lg text-left bg-gradient-to-b from-white  to-transparent focus:outline-none`}
       >
         <h3 className="text-lg font-semibold">{theme}</h3>
         <span className="text-sm text-gray-800 rounded-b-lg">
