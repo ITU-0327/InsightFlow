@@ -3,6 +3,7 @@ The idea for InsightFlow was born out of the challenges Product Managers face da
 
 InsightFlow is a latform designed to streamline the process of user research by automating the analysis of qualitative data. Unlike traditional methods that require hours of manual effort to organize, cluster, and analyze feedback, InsightFlow leverages LLM & Machine learning to transform raw data into meaningful insights quickly and efficiently. By reducing the time spent on tedious tasks, InsightFlow empowers founders , product managers and designers to make data driven decisions to build the next big thing!
 
+<<<<<<< HEAD
 #### **What We Learned**
 In developing InsightFlow, we explored advanced data clustering techniques with K-means, natural language processing, and Retrieval-Augmented Generation (RAG). We uncovered the potential of AI to organize unstructured data into meaningful themes, drastically reducing the manual effort typically involved in data analysis.
 
@@ -33,3 +34,33 @@ Clustering and data ingestion were initially slow, leading to poor user experien
 ### DevPost Page
 
 [InsightFlow](https://devpost.com/software/insightflow)
+=======
+### Video Demo
+
+[![InsightFlow Demo](https://www.youtube.com/watch?v=L9kF5zlmwQY)
+
+<img width="1439" alt="image" src="https://github.com/user-attachments/assets/28f40112-30ae-4232-bba9-b798daefa5b4">
+
+### How to run
+Backend
+Navigate to the api directory:
+```
+pip install -r requirements.txt
+```
+Run the FastAPI server:
+```
+uvicorn main:app --reload
+```
+Frontend
+Navigate to the web directory:
+```
+npm install
+```
+Start the development server:
+```
+npm run dev
+```
+
+
+
+>>>>>>> b2c6db3c3024ac3610e54c379970fdc0f851c2fb
