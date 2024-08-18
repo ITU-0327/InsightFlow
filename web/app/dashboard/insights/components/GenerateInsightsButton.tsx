@@ -8,7 +8,7 @@ import { useClientConfig } from "../../hooks/use-config";
 const GenerateInsightsButton = () => {
   const pathname = usePathname(); // Get the router object
   const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState<string[]>([]);
+  const [message, setMessage] = useState<string>("");
   const [projectId, setProjectId] = useState<string>("");
 
   const { backend } = useClientConfig();
@@ -46,13 +46,14 @@ const GenerateInsightsButton = () => {
 
       eventSource.onmessage = (event) => {
         const newMessage = event.data;
-        setMessages((prevMessages) => [...prevMessages, newMessage]);
+        const message = event.data.replace(/^data:/, "");
+        setMessage(message);
 
         // Stop loading when the process is complete
         if (
-            newMessage.includes("Insights ready") ||
-            newMessage.includes("Files status updated") ||
-            newMessage.includes("Ingestion complete")
+          newMessage.includes("Insights ready") ||
+          newMessage.includes("Files status updated") ||
+          newMessage.includes("Ingestion complete")
         ) {
           setLoading(false);
           if (eventSource) {
@@ -100,7 +101,7 @@ const GenerateInsightsButton = () => {
         }`}
         disabled={loading} // Disable button if loading or path is not /dashboard/insights/
       >
-        {loading ? "Generating Insights..." : "Generate Insights ✨"}
+        {loading ? message : "Generate Insights ✨"}
       </button>
     </div>
   );
