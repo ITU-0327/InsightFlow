@@ -31,7 +31,12 @@ export const getFileIcon = (fileType: string) => {
       return <IconFile />;
   }
 };
-export type Tag = "pain points" | "behaviour" | "demographics" | "goals";
+export type Tag =
+  | "pain points"
+  | "behaviour"
+  | "demographics"
+  | "goals"
+  | "motivations";
 
 export const getTagColour = (tag: Tag) => {
   const tagColourMap: Record<Tag, { bg: string; text: string }> = {
@@ -50,6 +55,10 @@ export const getTagColour = (tag: Tag) => {
     goals: {
       bg: "bg-yellow-200",
       text: "text-yellow-800",
+    },
+    motivations: {
+      bg: "bg-purple-200",
+      text: "text-purple-800",
     },
   };
   return (

@@ -38,7 +38,7 @@ const PersonaBioCard: React.FC<PersonaBioCardProps> = ({
   return (
     <div onClick={handleSelect}>
       <BaseCard
-        className={`flex gap-2 cursor-pointer h-full items-center max-w-[300px] ${
+        className={`flex gap-2 justify-between cursor-pointer h-full items-center max-w-[300px] ${
           selected ? "border-2 border-purple-500 bg-purple-50" : ""
         }`}
       >

@@ -6,6 +6,8 @@ import { useAuth } from "../hooks/use-auth";
 import PersonaBioCard from "./components/PersonaBioCard";
 import Image from "next/image";
 import { Icon3dCubeSphere } from "@tabler/icons-react";
+import { getTagColour } from "@/app/utils";
+import PersonaDetailsCard from "./components/PersonaDetailsCard";
 
 const Page: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -53,23 +55,14 @@ const Page: React.FC = () => {
           />
         ))}
       </div>
-      <div className="flex">
+      <div className="flex mt-5 justify-between">
         {/* <ChatWindow */}
         <div className="border">chat window</div>
         {selectedPersona && (
-          <div className="mt-4 p-4 bg-white rounded shadow-lg w-[500px]">
-            <Image height={100} width={100} alt="profile" src={personaImage} />
-            <h2 className="text-xl font-bold">{selectedPersona.name}</h2>
-            <p className="text-md text-gray-500">
-              {selectedPersona.personaTitle}
-            </p>
-            <p className="mt-2 text-gray-700">{selectedPersona.key_notes}</p>
-            <p className="mt-2 text-gray-700">{selectedPersona.painPoints}</p>
-            <p className="mt-2 text-gray-700">{selectedPersona.behavior}</p>
-            <p className="mt-2 text-gray-700">{selectedPersona.goals}</p>
-            <p className="mt-2 text-gray-700">{selectedPersona.motivations}</p>
-            {/* Add more fields as needed */}
-          </div>
+          <PersonaDetailsCard
+            persona={selectedPersona}
+            personaImage={personaImage}
+          />
         )}
       </div>
     </div>
