@@ -1,3 +1,4 @@
+"use client";
 import React, { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { InsightNote } from "../../insight.model";
@@ -11,16 +12,16 @@ interface ThemeAccordionProps {
 }
 
 const pastelGradientLightColors = [
-  "via-pink-100",
-  "via-blue-100",
-  "via-green-100",
-  "via-yellow-100",
-  "via-purple-100",
-  "via-teal-100",
-  "via-indigo-100",
-  "via-red-100",
-  "via-orange-100",
-  "via-gray-100",
+  "pink-100",
+  "blue-100",
+  "green-100",
+  "yellow-100",
+  "purple-100",
+  "teal-100",
+  "indigo-100",
+  "red-100",
+  "orange-100",
+  "gray-100",
 ];
 
 const ThemeAccordion: React.FC<ThemeAccordionProps> = ({
@@ -28,7 +29,7 @@ const ThemeAccordion: React.FC<ThemeAccordionProps> = ({
   notes,
   className,
 }) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
   const randomColor = useMemo(() => {
     const randomIndex = Math.floor(
@@ -63,10 +64,10 @@ const ThemeAccordion: React.FC<ThemeAccordionProps> = ({
     >
       <div
         onClick={() => setOpen(!open)}
-        className={`w-full p-4 cursor-pointer rounded-t-lg text-left bg-gradient-to-b from-transparent ${randomColor} to-gray-100 focus:outline-none`}
+        className={`w-full p-4 cursor-pointer  bg-${randomColor} rounded-b-none rounded-lg text-left bg-gradient-to-b from-white  to-transparent focus:outline-none`}
       >
         <h3 className="text-lg font-semibold">{theme}</h3>
-        <span className="text-sm text-gray-800">
+        <span className="text-sm text-gray-800 rounded-b-lg">
           {notes.length} {notes.length === 1 ? "note" : "notes"}
         </span>
       </div>
@@ -77,7 +78,7 @@ const ThemeAccordion: React.FC<ThemeAccordionProps> = ({
             animate="visible"
             exit="exit"
             variants={containerVariants}
-            className="p-4 bg-gray-100 overflow-scroll flex flex-row gap-2 max-h-svh"
+            className={`p-4 bg-${randomColor} overflow-scroll flex flex-row gap-2 max-h-svh rounded-b-lg`}
           >
             {notes.map((note, index) => (
               <motion.div key={index} variants={itemVariants}>

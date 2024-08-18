@@ -21,7 +21,7 @@ const convertToInsightNotes = (sources: Record<string, any>): InsightNote[] => {
     return {
       note: value.note, // Assuming 'note' refers to the filename
       tags: value.tags, // Assuming no tags are provided; adjust as needed
-      fullText: value.note, // Assuming 'fullText' refers to the file path
+      fullText: value.note, // TODO: replace with text_content
       source: value.file_name,
     };
   });
