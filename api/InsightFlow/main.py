@@ -1,18 +1,21 @@
 from typing import Dict, Optional
 from llama_index.readers.file import PDFReader
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from tempfile import NamedTemporaryFile
 from supabase import create_client, Client
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 import os
+
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse
 from InsightFlow.VectorDBInteractor import VectorDBInteractor
 from pydantic import BaseModel
 from InsightFlow.utils import file_name_formatter, create_project_vec_table, openai_summary, select_group_by_themes
 from InsightFlow.ClusteringPipeline import ClusteringPipeline
+
 
 load_dotenv(".env.local")
 
@@ -37,11 +40,14 @@ vector_db_interactor = VectorDBInteractor(supabase_client=supabase)
 pipeline = ClusteringPipeline(vector_db_interactor, supabase)
 
 
+
+
 # Define the ProjectDetails schema
 class ProjectDetails(BaseModel):
     title: str
     description: str
     requirements: str
+
 
 
 @app.post("/api/projects/")
