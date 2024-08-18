@@ -16,6 +16,9 @@ from llama_index.core import SimpleDirectoryReader, get_response_synthesizer, Ve
 from llama_index.readers.file import PDFReader, CSVReader
 from llama_index.program.openai import OpenAIPydanticProgram
 from llama_index.vector_stores.supabase import SupabaseVectorStore
+from llama_index.core import PromptTemplate
+from llama_index.core.postprocessor import LLMRerank
+
 
 from dotenv import load_dotenv
 
@@ -112,7 +115,7 @@ class VectorDBInteractor:
         print("deleted", ingestion_path)
         yield f"{len(docs)} Insights ready"
 
-    async def rag_query(self, query: str, project_id: str, filters: Optional[Dict[str, str]] = None):
+    async def rag_query(self, query: str, project_id: str, role_prompt:str ,filters: Optional[Dict[str, str]] = None):
         # https://docs.llamaindex.ai/en/stable/examples/vector_stores/Qdrant_metadata_filter/
         metadata_filters = None  # TODO: need to transform JSON into MetadataFilters
         if self.vector_store is None:
@@ -128,18 +131,42 @@ class VectorDBInteractor:
         retriever = VectorIndexRetriever(
             filters=metadata_filters,
             index=self.index,
-            similarity_top_k=5,
+            similarity_top_k=10,
         )
 
         # Configure response synthesizer
         # TODO: make the response streamable
         # response_synthesizer = get_response_synthesizer(streaming=True)
-        response_synthesizer = get_response_synthesizer()
+        # Ensure role_prompt is a string before concatenation
+        role_prompt = str(role_prompt)
+
+        # Create the prompt template with the correct string formatting
+        prompt_template_str = (
+            "Context information is below.\n"
+            "---------------------\n"
+            "{context_str}\n"
+            "---------------------\n"
+            "Given the context information and not prior knowledge, "
+            f"Given your ROLE: {role_prompt}.\n"
+            "Answer the question.\n"
+            "Query: {query_str}\n"
+            "Answer: "
+        )
+
+        # Initialize the PromptTemplate object with the formatted string
+        prompt_template = PromptTemplate(prompt_template_str)
+
+        # Configure the response synthesizer with the custom prompt template
+        response_synthesizer = get_response_synthesizer(response_mode="compact", text_qa_template=prompt_template)
 
         # Assemble query engine
         query_engine = RetrieverQueryEngine(
             retriever=retriever,
             response_synthesizer=response_synthesizer,
+            node_postprocessors=[LLMRerank(
+            choice_batch_size=5,
+            top_n=3,
+        )]
         )
         streaming_response = query_engine.query(query)
         return streaming_response

@@ -435,8 +435,8 @@ async def rag_chat(project_id: str, query: str, filters: Optional[Dict[str, str]
     print(project_id, query)
     try:
         # TODO: need to make it streamable
-
-        response_stream = await vector_db_interactor.rag_query(query, project_id, filters)
+        role = "You are an expert AI product manager assistant that specialises in product management and UX research"
+        response_stream = await vector_db_interactor.rag_query(query, project_id, role, filters)
         return response_stream
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

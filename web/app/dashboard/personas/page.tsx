@@ -5,6 +5,7 @@ import { getProjects } from "../actions";
 import { useAuth } from "../hooks/use-auth";
 import PersonaBioCard from "./components/PersonaBioCard";
 import Image from "next/image";
+import { Icon3dCubeSphere } from "@tabler/icons-react";
 
 const Page: React.FC = () => {
   const [loading, setLoading] = useState(false);
