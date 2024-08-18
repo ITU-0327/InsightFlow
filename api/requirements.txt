@@ -48,6 +48,7 @@ llama-index-program-openai==0.1.7
 llama-index-question-gen-openai==0.1.3
 llama-index-readers-file==0.1.33
 llama-index-readers-llama-parse==0.1.6
+llama-index-vector-stores-supabase==0.1.5
 llama-parse==0.4.9
 markdown-it-py==3.0.0
 MarkupSafe==2.1.5
@@ -109,3 +110,4 @@ websockets==12.0
 wrapt==1.16.0
 yarl==1.9.4
 pytest~=8.3.2
+asyncpg~=0.29.0

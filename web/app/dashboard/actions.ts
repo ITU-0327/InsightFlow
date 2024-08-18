@@ -5,7 +5,6 @@ import { useClientConfig } from "./hooks/use-config";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 
-const { backend } = useClientConfig();
 export const logOut = async (): Promise<void> => {
   "use server";
   const supabase = createClient();
@@ -13,8 +12,9 @@ export const logOut = async (): Promise<void> => {
   redirect("/login");
 };
 export const getProjects = async (
-  user_id: string = "123"
+  user_id: string = "USER_ID_NOT_PROVIDED"
 ): Promise<Project[]> => {
+  const { backend } = useClientConfig();
   try {
     const response = await fetch(`${backend}/users/${user_id}/projects`, {
       method: "GET",
@@ -30,7 +30,7 @@ export const getProjects = async (
     const projects: Project[] = await response.json();
     return projects;
   } catch (error) {
-    console.error("Error fetching projects:", error);
+    console.error("Error fetching projects for user:", user_id, error);
     throw error;
   }
 };

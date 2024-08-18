@@ -1,11 +1,12 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { ProjectFile } from "./files.model";
-import { deleteProjectFile, downloadFile, getProjectFiles } from "./actions";
+import { deleteProjectFile, getFileDownloadUrl, getProjectFiles } from "./actions";
 import { getProjects } from "../actions";
 import FileUploadComponent from "./components/FileUploadComponent";
 import FileItemComponent from "./components/FIleItemComponent";
 import LoadingCard from "@/components/ui/card-loading";
+import { useAuth } from "../hooks/use-auth";
 
 const Page = () => {
   const [files, setFiles] = useState<ProjectFile[]>([]);
@@ -14,7 +15,8 @@ const Page = () => {
 
   const fetchFiles = async () => {
     try {
-      const projects = await getProjects();
+      const auth = await useAuth();
+      const projects = await getProjects(auth?.userId);
       if (projects.length === 0) {
         console.log("No projects found");
         setLoading(false);
@@ -45,7 +47,21 @@ const Page = () => {
 
   const handleDownload = async (fileName: string) => {
     try {
-      await downloadFile(projectId, fileName);
+      const downloadUrl = await getFileDownloadUrl(projectId, fileName);
+
+      const response = await fetch(downloadUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to download file: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+
+      const link = document.createElement("a");
+      link.href = window.URL.createObjectURL(blob);
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     } catch (error) {
       console.error("Failed to download file:", error);
     }

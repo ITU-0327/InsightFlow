@@ -9,7 +9,9 @@ import {
   IconLogout,
   IconLogout2,
   IconSparkles,
+  IconUserBolt,
   IconUserCircle,
+  IconUserHeart,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -65,6 +67,13 @@ export default function SidebarPanel({ userEmail }: { userEmail: string }) {
       href: "/dashboard/insights",
       icon: (
         <IconSparkles className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+      ),
+    },
+    {
+      label: "Personas",
+      href: "/dashboard/personas",
+      icon: (
+        <IconUserHeart className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
       ),
     },
   ];

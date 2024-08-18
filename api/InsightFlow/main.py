@@ -1,3 +1,5 @@
+from typing import Dict, Optional
+from llama_index.readers.file import PDFReader
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -6,70 +8,112 @@ from supabase import create_client, Client
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 import os
-import re
+
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.responses import StreamingResponse
+from InsightFlow.VectorDBInteractor import VectorDBInteractor
+from pydantic import BaseModel
+from InsightFlow.utils import file_name_formatter, create_project_vec_table, openai_summary, select_group_by_themes
+from InsightFlow.ClusteringPipeline import ClusteringPipeline
+
 
 load_dotenv(".env.local")
+
+# Initialize Supabase client
+SUPABASE_URL: str = os.environ.get("PUBLIC_SUPABASE_URL")
+SUPABASE_KEY: str = os.environ.get("PUBLIC_SUPABASE_ANON_KEY")
+FRONTEND_HOST: str = os.environ.get("FRONTEND_HOST_URL")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = FastAPI()
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Frontend URL
+    allow_origins=[FRONTEND_HOST],  # Frontend URL
     allow_credentials=True,
     allow_methods=["*"],  # You can restrict methods if needed
     allow_headers=["*"],  # You can restrict headers if needed
 )
 
-# Initialize Supabase client
-SUPABASE_URL: str = os.environ.get("PUBLIC_SUPABASE_URL")
-SUPABASE_KEY: str = os.environ.get("PUBLIC_SUPABASE_ANON_KEY")
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+vector_db_interactor = VectorDBInteractor(supabase_client=supabase)
+pipeline = ClusteringPipeline(vector_db_interactor, supabase)
 
 
-def file_name_formatter(file_name: str) -> str:
-    """
-    Format the file name by removing spaces and illegal characters.
 
-    Args:
-        file_name (str): The original file name.
 
-    Returns:
-        str: The formatted file name.
-    """
-    file_name = file_name.strip()
-    file_name = file_name.replace(" ", "_")
-    file_name = re.sub(r'[^\w\-.]', '', file_name)
-    return file_name
+# Define the ProjectDetails schema
+class ProjectDetails(BaseModel):
+    title: str
+    description: str
+    requirements: str
+
 
 
 @app.post("/api/projects/")
-def create_project(user_id: str = Form(...), title: str = Form(...), description: str = Form(...), requirements: str = Form(...)):
+async def upsert_project(user_id: str = Form(...), file: UploadFile = File(...), project_id: str = Form(None)):
     """
-    Create a new project.
+    Create or update a project by uploading a PDF file.
+
+    If `project_id` is provided, the existing project will be updated.
+    If `project_id` is not provided, a new project will be created.
 
     Args:
-        user_id (str): The ID of the user creating the project.
-        title (str): The title of the project.
-        description (str): A brief description of the project.
-        requirements (str): The requirements or specifications of the project.
+        user_id (str): The ID of the user creating/updating the project.
+        file (UploadFile): The PDF file containing the project information.
+        project_id (str, optional): The ID of the project to update.
 
     Returns:
         dict: A message indicating the success of the operation along with the project data.
 
     Raises:
-        HTTPException: If there is an issue inserting the project into the database.
+        HTTPException: If there is an issue processing the file or inserting/updating the project in the database.
     """
     try:
-        project = supabase.table("projects").insert(
-            {
-                "user_id": user_id,
-                "title": title,
-                "description": description,
-                "requirements": requirements,
-            }
-        ).execute()
-        return {"message": "Project created successfully!", "data": project.data}
+        # Step 1: Read the PDF file
+        pdf_reader = PDFReader()
+        with NamedTemporaryFile(delete=False) as temp_file:
+            temp_file.write(await file.read())
+            temp_file_path = temp_file.name
+
+        # Extract text from the PDF
+        extracted_text = pdf_reader.load_data(temp_file_path)[0].text
+
+        project_details = openai_summary(
+            system_prompt="You are an expert at structured data extraction. You will be "
+                          "given unstructured text from a business system description "
+                          "and should convert it into the given structure.",
+            user_prompt=extracted_text,
+            response_model=ProjectDetails
+        )
+
+        if project_id:
+            # Step 3a: Update the existing project
+            project = supabase.schema("public").from_("projects").update(
+                {
+                    "title": project_details.title,
+                    "description": project_details.description,
+                    "requirements": project_details.requirements,
+                }
+            ).eq("id", project_id).execute()
+            message = "Project updated successfully!"
+        else:
+            # Step 3b: Insert a new project into the database
+            project = supabase.schema("public").from_("projects").insert(
+                {
+                    "user_id": user_id,
+                    "title": project_details.title,
+                    "description": project_details.description,
+                    "requirements": project_details.requirements,
+                }
+            ).execute()
+            create_project_vec_table(project.data[0]["id"])
+            message = "Project created successfully!"
+
+        # Step 4: Clean up the temporary file
+        os.remove(temp_file_path)
+
+        return {"message": message, "data": project.data}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -89,7 +133,7 @@ def get_user_projects(user_id: str):
         HTTPException: If there is an issue retrieving the projects from the database.
     """
     try:
-        projects = supabase.table("projects").select("*").eq("user_id", user_id).execute()
+        projects = supabase.schema("public").from_("projects").select("*").eq("user_id", user_id).execute()
         return projects.data
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -120,7 +164,8 @@ async def upload_file(project_id: str, file: UploadFile = File(...)):
         file_content = await file.read()
 
         # Check if the file already exists in the database
-        existing_file = supabase.table("files").select("id").eq("project_id", project_id).eq("file_name", file.filename).execute()
+        existing_file = supabase.schema("public").from_("files").select("id").eq("project_id", project_id).eq(
+            "file_name", file.filename).execute()
 
         current_time = datetime.now(timezone.utc).isoformat()
 
@@ -136,7 +181,7 @@ async def upload_file(project_id: str, file: UploadFile = File(...)):
             file_url = supabase.storage.from_("file-storage").get_public_url(file_path)
 
             # Update existing file record with new URL and timestamp
-            supabase.table("files").update(
+            supabase.schema("public").from_("files").update(
                 {
                     "file_url": file_url,
                     "last_update_time": current_time
@@ -150,7 +195,7 @@ async def upload_file(project_id: str, file: UploadFile = File(...)):
             file_url = supabase.storage.from_("file-storage").get_public_url(file_path)
 
             # Insert a new file record in the database
-            supabase.table("files").insert(
+            supabase.schema("public").from_("files").insert(
                 {
                     "project_id": project_id,
                     "file_name": formatted_file_name,
@@ -162,10 +207,13 @@ async def upload_file(project_id: str, file: UploadFile = File(...)):
 
         return {"message": "File uploaded successfully!", "file_url": file_url}
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=400, detail=str(e))
+
+
 # @app.post("/api/projects/{project_id}/files/")
 # def upload_project_background_file(project_id: str, file: UploadFile = File(...)):
-    
+
 
 @app.get("/api/projects/{project_id}/files/")
 def get_project_files(project_id: str):
@@ -182,7 +230,8 @@ def get_project_files(project_id: str):
         HTTPException: If there is an issue retrieving the files from the database.
     """
     try:
-        files = supabase.table("files").select("file_name, file_url, last_update_time").eq("project_id", project_id).execute()
+        files = supabase.schema("public").from_("files").select("file_name, file_url, last_update_time").eq(
+            "project_id", project_id).execute()
         return files.data
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -207,7 +256,14 @@ def delete_file(project_id: str, file_name: str):
         file_path = f"{project_id}/{file_name}"
 
         # Check if the file exists in the database
-        file = supabase.table("files").select("id").eq("project_id", project_id).eq("file_name", file_name).execute()
+        file = (
+            supabase
+            .schema("public")
+            .from_("files")
+            .select("id")
+            .eq("project_id", project_id)
+            .eq("file_name", file_name).execute()
+        )
         if not file.data:
             raise HTTPException(status_code=404, detail="File not found in the database")
 
@@ -221,7 +277,8 @@ def delete_file(project_id: str, file_name: str):
         supabase.storage.from_("file-storage").remove([file_path])
 
         # Delete the file record from the database
-        supabase.table("files").delete().eq("project_id", project_id).eq("file_name", file_name).execute()
+        supabase.schema("public").from_("files").delete().eq("project_id", project_id).eq("file_name",
+                                                                                          file_name).execute()
 
         return {"message": "File deleted successfully!"}
 
@@ -267,5 +324,163 @@ def download_file(project_id: str, file_name: str):
     except HTTPException as e:
         # Re-raise HTTPExceptions to preserve the status code and message
         raise e
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/api/projects/{project_id}/ingest/")
+async def ingest_data(project_id: str):
+    # Fetch file URLs
+    file_urls = []
+    try:
+        files = (
+            supabase
+            .schema("public")
+            .from_("files")
+            .select("file_url")
+            .eq("project_id", project_id)
+            .eq("ingested", False)
+            .execute()
+        )
+        file_urls = [file['file_url'] for file in files.data]
+    except Exception as e:
+        print(f"An error occurred while fetching file URLs: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+    # Define the event generator function
+    async def event_generator():
+        if not file_urls:
+            yield "data: No new files to ingest.\n\n"
+            return  # Exit the generator early
+
+        async for message in vector_db_interactor.ingest_data(file_urls, project_id):
+            yield f"data: {message}\n\n"
+
+        # After ingestion is done, update the `ingested` status in the database
+        try:
+            file_url = [file['file_url'] for file in files.data]
+            update_response = (
+                supabase
+                .schema("public")
+                .from_("files")
+                .update({"ingested": True})
+                .in_("file_url", file_url)
+                .execute()
+            )
+            yield "data: Files status updated to ingested"
+        except Exception as e:
+            yield f"data: An error occurred while updating file statuses: {e}\n\n"
+
+        yield "data: Ingestion complete\n\n"
+
+    # Use StreamingResponse to stream data
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+@app.post("/api/projects/{project_id}/themes/")
+async def create_theme_insights(project_id: str):
+    # Fetch relevant data
+    try:
+        await pipeline.run_theme_clustering_pipeline(project_id=project_id)
+        return {"message": "Update successful"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/api/projects/{project_id}/themes/")
+def get_theme_insights(project_id: str):
+    # Fetch relevant data
+    try:
+        # Filter necessary data GROUP by theme
+        filtered_data = select_group_by_themes(project_id)
+        return filtered_data
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/projects/{project_id}/personas/")
+async def create_persona_insights(project_id: str):
+    # Fetch relevant data
+    try:
+        await pipeline.run_persona_clustering_pipeline(project_id=project_id)
+        return {"message": "Update successful"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/api/projects/{project_id}/personas/")
+def get_persona_insights(project_id: str):
+    try:
+        personas = (
+            supabase
+            .schema("public")
+            .from_("personas")
+            .select("id, name, persona_title, demographics, behavior_patterns, pain_points, goals, motivations, "
+                    "key_notes")
+            .eq("project_id", project_id)
+            .execute()
+        )
+        return personas
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/api/projects/{project_id}/insights/docs")
+def get_all_docs_insights(project_id: str):
+    # Fetch relevant data
+    try:
+        # Filter necessary data
+        filtered_data = vector_db_interactor.select_all(project_id)
+        return filtered_data
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/projects/{project_id}/rag_chat/")  # for chatting with persona & themes
+async def rag_chat(project_id: str, query: str, persona_id: str = None):
+    print(f"Project ID: {project_id}, Query: {query}, Persona ID: {persona_id}")
+    try:
+        # Fetch persona data if persona_id is provided
+        if persona_id:
+            response = (
+                supabase
+                .schema("public")
+                .from_("personas")
+                .select(
+                    "name, persona_title, demographics, behavior_patterns, pain_points, goals, motivations, key_notes")
+                .eq("id", persona_id)
+                .single()
+                .execute()
+            )
+
+            persona_data = response.data
+
+            if not persona_data:
+                raise HTTPException(status_code=404, detail="Persona not found")
+
+            persona_summary = (
+                f"Persona Name: {persona_data['name']}\n"
+                f"Title: {persona_data['persona_title']}\n"
+                f"Demographics: {persona_data['demographics']}\n"
+                f"Behavior Patterns: {persona_data['behavior_patterns']}\n"
+                f"Pain Points: {persona_data['pain_points']}\n"
+                f"Goals: {persona_data['goals']}\n"
+                f"Motivations: {persona_data['motivations']}\n"
+                f"Key Notes: {persona_data['key_notes']}"
+            )
+
+            role = (
+                f"You are {persona_data['name']}, a {persona_data['persona_title']} with "
+                f"the following characteristics:\n{persona_summary}. You will answer as if you were this persona, "
+                "focusing on the persona's specific goals, pain points, and motivations."
+            )
+            response_stream = openai_summary(role, query)
+        else:
+            # If no persona_id is provided, use the general role
+            role = ("You are an expert AI product manager assistant that specializes in product management and UX "
+                    "research. Your task is to provide insightful responses based on the given query.")
+            response_stream = await vector_db_interactor.rag_query(query, project_id, role)
+
+        return response_stream
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
