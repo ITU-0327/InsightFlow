@@ -1,20 +1,10 @@
 import nltk
 import os
+
+nltk.data.path.append(os.path.join(os.getcwd(), "nltk_data"))
 from nltk.corpus import wordnet
 
-# Set a specific directory for NLTK data
-nltk_data_path = os.path.join(os.getcwd(), "nltk_data")
-if not os.path.exists(nltk_data_path):
-    os.makedirs(nltk_data_path)
-
-# Add the directory to the NLTK data path
-nltk.data.path.append(nltk_data_path)
-
-# Attempt to load wordnet, download if not present
-try:
-    wordnet.ensure_loaded()
-except LookupError:
-    nltk.download('wordnet', download_dir=nltk_data_path)
+wordnet.ensure_loaded()
 
 from llama_index.readers.file import PDFReader
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
