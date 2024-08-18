@@ -1,22 +1,20 @@
 import nltk
-from nltk.corpus import wordnet
 import os
-import logging
+from nltk.corpus import wordnet
 
-logging.basicConfig(level=logging.INFO)
+# Set a specific directory for NLTK data
 nltk_data_path = os.path.join(os.getcwd(), "nltk_data")
 if not os.path.exists(nltk_data_path):
     os.makedirs(nltk_data_path)
 
+# Add the directory to the NLTK data path
 nltk.data.path.append(nltk_data_path)
 
+# Attempt to load wordnet, download if not present
 try:
     wordnet.ensure_loaded()
-    logging.info("WordNet loaded successfully.")
 except LookupError:
-    logging.info("WordNet not found, downloading...")
     nltk.download('wordnet', download_dir=nltk_data_path)
-    logging.info("WordNet downloaded successfully.")
 
 from llama_index.readers.file import PDFReader
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
