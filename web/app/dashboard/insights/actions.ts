@@ -75,3 +75,41 @@ export async function ragChatAction(
     throw error;
   }
 }
+
+export async function chatWithPersonaAction(
+  projectId: string,
+  query: string,
+  personaId: string
+) {
+  const { backend } = useClientConfig();
+  try {
+    const encodedQuery = encodeURIComponent(query);
+
+    const response = await fetch(
+      `${backend}/projects/${projectId}/rag_chat/?query=${encodedQuery}&persona_id=${personaId}`,
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        //   body: JSON.stringify(data),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    const chatResponse: ChatResponse = {
+      metadata: data.metadata,
+      response: data.response,
+    };
+    return chatResponse;
+  } catch (error) {
+    console.error("Error in ragChatAction:", error);
+    throw error;
+  }
+}

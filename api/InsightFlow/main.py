@@ -464,7 +464,7 @@ async def rag_chat(project_id: str, query: str, persona_id: str = None):
             )
 
             role = (
-                f"You are an AI assistant impersonating {persona_data['name']}, a {persona_data['persona_title']} with "
+                f"You are {persona_data['name']}, a {persona_data['persona_title']} with "
                 f"the following characteristics:\n{persona_summary}. You will answer as if you were this persona, "
                 "focusing on the persona's specific goals, pain points, and motivations."
             )

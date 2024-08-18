@@ -15,6 +15,7 @@ export type Message = {
 };
 
 const convertToInsightNotes = (sources: Record<string, any>): InsightNote[] => {
+  if (!sources) return [];
   return Object.entries(sources).map(([key, value]) => {
     return {
       note: value.note, // Assuming 'note' refers to the filename
@@ -26,12 +27,25 @@ const convertToInsightNotes = (sources: Record<string, any>): InsightNote[] => {
 };
 
 interface ChatBoxProps {
-  onSend: (projectId: string, input: string) => Promise<any>;
+  onSend?: (projectId: string, input: string) => Promise<any>;
+  onSendToPersona?: (
+    projectId: string,
+    input: string,
+    personaId: string
+  ) => Promise<any>;
   className?: string;
+  chatWithPersonaId?: string;
+  chatMessages?: Message[];
 }
 
-export const ChatBox: React.FC<ChatBoxProps> = ({ onSend, className }) => {
-  const [messages, setMessages] = useState<Message[]>([]);
+export const ChatBox: React.FC<ChatBoxProps> = ({
+  onSend,
+  onSendToPersona,
+  className,
+  chatWithPersonaId,
+  chatMessages,
+}) => {
+  const [messages, setMessages] = useState<Message[]>(chatMessages || []);
   const [input, setInput] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -58,7 +72,13 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ onSend, className }) => {
       }
 
       const projectId = projects[0].id!;
-      const response = await onSend(projectId, input);
+      let response;
+      if (!chatWithPersonaId && onSend) {
+        response = await onSend(projectId, input);
+      } else {
+        response = await onSendToPersona!(projectId, input, chatWithPersonaId!);
+      }
+      console.log(response);
 
       setMessages([
         ...newMessages,

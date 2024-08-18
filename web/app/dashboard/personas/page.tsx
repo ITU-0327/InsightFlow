@@ -8,8 +8,8 @@ import Image from "next/image";
 import { Icon3dCubeSphere } from "@tabler/icons-react";
 import { getTagColour } from "@/app/utils";
 import PersonaDetailsCard from "./components/PersonaDetailsCard";
-import { ChatBox } from "../insights/ask/Chatbox";
-import { ragChatAction } from "../insights/actions";
+import { ChatBox, Message } from "../insights/ask/Chatbox";
+import { chatWithPersonaAction, ragChatAction } from "../insights/actions";
 import LoadingCard from "@/components/ui/card-loading";
 
 const Page: React.FC = () => {
@@ -17,6 +17,7 @@ const Page: React.FC = () => {
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [personaImage, setPersonaImage] = useState<string>("");
+  const [messages, setMessages] = useState<Message[]>([]);
 
   async function fetchPersonas() {
     setLoading(true);
@@ -42,6 +43,7 @@ const Page: React.FC = () => {
     const persona = personas.find((p) => p.personaId === id) || null;
     setSelectedPersona(persona);
     setPersonaImage(image);
+    setMessages([]);
   };
   if (loading)
     return (
@@ -75,7 +77,12 @@ const Page: React.FC = () => {
               personaImage={personaImage}
             />
             <div className="max-w-[600px] w-full mt-5">
-              <ChatBox onSend={ragChatAction} className="h-[650px]" />
+              <ChatBox
+                onSendToPersona={chatWithPersonaAction}
+                chatWithPersonaId={selectedPersona.personaId}
+                className="h-[650px]"
+                chatMessages={messages}
+              />
             </div>
           </>
         ) : (
