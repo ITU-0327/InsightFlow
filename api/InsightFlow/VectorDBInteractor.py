@@ -52,20 +52,21 @@ class VectorDBInteractor:
             self.vector_store = None
 
     async def ingest_data(self, urls: List[str], project_id: str):
-        yield "Started processing data"
-        # LOADING
+        yield "data: Started processing data\n\n"
+
         ingestion_path = os.path.join(gettempdir(), 'ingestion_data')
         print(ingestion_path)
         os.makedirs(ingestion_path, exist_ok=True)
+
         for url in urls:
             await _download_file(url, ingestion_path)
-        print("extracting file .....")
+        print("data: extracting file .....")
+
         file_extractor = {".pdf": PDFReader(), ".csv": CSVReader(concat_rows=False)}
         downloaded_documents = SimpleDirectoryReader(
             ingestion_path, file_extractor=file_extractor
         ).load_data()
 
-        # METADATA EXTRACTION
         EXTRACT_TEMPLATE_STR = """\
         Here is the content of the section please adhere to keywords like `ONLY`:
         ----------------
@@ -86,9 +87,7 @@ class VectorDBInteractor:
         )
 
         self.vector_store = SupabaseVectorStore(
-            postgres_connection_string=(
-                SUPABASE_DB_CONN
-            ),
+            postgres_connection_string=SUPABASE_DB_CONN,
             collection_name=project_id,  # Project ID
         )
 
@@ -100,7 +99,7 @@ class VectorDBInteractor:
             ],
         )
 
-        yield "Extracting Insights ... this might take a while"
+        yield "data: Extracting Insights ... this might take a while\n\n"
         print("running pipeline")
         docs = await pipeline.arun(documents=downloaded_documents, num_workers=10)
 
@@ -108,12 +107,12 @@ class VectorDBInteractor:
 
         self.index = VectorStoreIndex.from_documents(docs, storage_context, show_progress=True)
 
-        yield "Preparing insights"
+        yield "data: Preparing insights\n\n"
 
         # remove all locally stored data
         shutil.rmtree(ingestion_path)
         print("deleted", ingestion_path)
-        yield f"{len(docs)} Insights ready"
+        yield f"data: {len(docs)} Insights ready\n\n"
 
     async def rag_query(self, query: str, project_id: str, role_prompt:str ,filters: Optional[Dict[str, str]] = None):
         # https://docs.llamaindex.ai/en/stable/examples/vector_stores/Qdrant_metadata_filter/

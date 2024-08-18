@@ -1,10 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import useSSE from "../../hooks/use-sse";
-import { generateInsights } from "../actions";
 import { useAuth } from "../../hooks/use-auth";
 import { getProjects } from "../../actions";
 import { usePathname } from "next/navigation";
+import { useClientConfig } from "../../hooks/use-config";
 
 const GenerateInsightsButton = () => {
   const pathname = usePathname(); // Get the router object
@@ -12,10 +11,9 @@ const GenerateInsightsButton = () => {
   const [messages, setMessages] = useState<string[]>([]);
   const [projectId, setProjectId] = useState<string>("");
 
-  const [sseUrl, setSseUrl] = useState<string>("");
-  const sseMessages = useSSE(sseUrl); // useSSE hook
+  const { backend } = useClientConfig();
 
-  // Fetch projects and setup SSE
+  // Fetch projects
   useEffect(() => {
     const fetchProjects = async () => {
       const auth = await useAuth(); // useAuth hook
@@ -28,8 +26,6 @@ const GenerateInsightsButton = () => {
           }
 
           setProjectId(projects[0].id!);
-          const url = `http://localhost:8000/api/projects/${projects[0].id}/ingest/`;
-          setSseUrl(url); // Set SSE URL to start listening
         } catch (error) {
           console.error("Error fetching projects:", error);
         }
@@ -42,23 +38,57 @@ const GenerateInsightsButton = () => {
   }, []);
 
   useEffect(() => {
-    setMessages(sseMessages); // Update messages when sseMessages changes
-  }, [sseMessages]);
+    let eventSource: EventSource | null = null;
 
-  const startIngestion = async () => {
-    if (projectId) {
-      setLoading(true);
-      try {
-        const insightsResponse = await generateInsights(projectId);
-        console.log(insightsResponse);
-      } catch (error) {
-        console.error("Error generating insights:", error);
-      } finally {
+    if (loading && projectId) {
+      const url = `${backend}/projects/${projectId}/ingest/`;
+      eventSource = new EventSource(url);
+
+      eventSource.onmessage = (event) => {
+        const newMessage = event.data;
+        setMessages((prevMessages) => [...prevMessages, newMessage]);
+
+        // Stop loading when the process is complete
+        if (
+            newMessage.includes("Insights ready") ||
+            newMessage.includes("Files status updated") ||
+            newMessage.includes("Ingestion complete")
+        ) {
+          setLoading(false);
+          if (eventSource) {
+            eventSource.close();
+          }
+          // Dispatch a custom event when insights are ready
+          window.dispatchEvent(new Event("insightsGenerated"));
+        }
+      };
+
+      eventSource.onerror = (err) => {
+        console.error("EventSource failed:", err);
         setLoading(false);
-      }
+        if (eventSource) {
+          eventSource.close();
+        }
+      };
     }
-  }; // Check if current path is not /dashboard/insights/
-  if (pathname !== "/dashboard/insights") return <></>;
+
+    // Cleanup when the component is unmounted
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+      }
+    };
+  }, [loading, projectId, backend]);
+
+  const startIngestion = () => {
+    if (projectId) {
+      setLoading(true); // Start loading and SSE will begin in useEffect
+    }
+  };
+
+  // Check if the current path is not /dashboard/insights/
+  if (pathname !== "/dashboard/insights") return null;
+
   return (
     <div className="">
       <button
@@ -72,13 +102,6 @@ const GenerateInsightsButton = () => {
       >
         {loading ? "Generating Insights..." : "Generate Insights ✨"}
       </button>
-      <div className="mt-4 space-y-2 w-full">
-        {messages.map((message, index) => (
-          <div key={index} className="p-2 border rounded-md bg-gray-100">
-            {message}
-          </div>
-        ))}
-      </div>
     </div>
   );
 };

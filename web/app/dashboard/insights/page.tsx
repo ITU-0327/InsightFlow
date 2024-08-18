@@ -3,9 +3,7 @@ import React, { useEffect, useState } from "react";
 import { getProjects } from "../actions";
 import { getProjectInsights } from "./actions";
 import { InsightNote } from "./insight.model";
-import NoteCard from "./components/NoteCard";
 import { MasonryLayout } from "./components/MasonryLayout";
-import { revalidatePath } from "next/cache";
 import LoadingCard from "@/components/ui/card-loading";
 import { useAuth } from "../hooks/use-auth";
 import Image from "next/image";
@@ -32,7 +30,20 @@ const Page = () => {
 
   useEffect(() => {
     fetchInsights();
+
+    // Listen for the custom event and fetch insights when it occurs
+    const handleInsightsGenerated = () => {
+      fetchInsights();
+    };
+
+    window.addEventListener("insightsGenerated", handleInsightsGenerated);
+
+    // Cleanup the event listener when the component is unmounted
+    return () => {
+      window.removeEventListener("insightsGenerated", handleInsightsGenerated);
+    };
   }, []);
+
   if (insightNotes.length === 0 && !loading) {
     return (
       <Image
