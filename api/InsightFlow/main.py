@@ -1,7 +1,14 @@
-from typing import Dict, Optional
+import nltk
+from nltk.corpus import wordnet
+
+# Check if the 'wordnet' corpus is available, if not, download it
+try:
+    wordnet.ensure_loaded()
+except LookupError:
+    nltk.download('wordnet')
+
 from llama_index.readers.file import PDFReader
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from tempfile import NamedTemporaryFile
 from supabase import create_client, Client
