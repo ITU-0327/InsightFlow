@@ -6,8 +6,7 @@ InsightFlow is an innovative web application designed for VicHack2024, aimed at 
 
 ### Video Demo
 
-[![InsightFlow Demo](https://img.youtube.com/vi/1Q1Z9Z9Z9Z9/0.jpg)](https://www.youtube.com/watch?v=1Q1Z9Z9Z9Z9)
+[![InsightFlow Demo](https://www.youtube.com/watch?v=L9kF5zlmwQY)
 
-### Live Demo
+<img width="1439" alt="image" src="https://github.com/user-attachments/assets/28f40112-30ae-4232-bba9-b798daefa5b4">
 
-[InsightFlow](https://insightflow.herokuapp.com/)
