@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
-import { Message } from "../page";
 import NoteCard from "../../components/NoteCard";
 import { IconLink } from "@tabler/icons-react";
+import { Message } from "../Chatbox";
 
 export function MessageCard({
   message,

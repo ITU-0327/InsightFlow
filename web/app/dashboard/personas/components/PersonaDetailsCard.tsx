@@ -10,7 +10,7 @@ const PersonaDetailsCard = ({
   persona: Persona;
 }) => {
   return (
-    <div className="mt-4 p-5 bg-white rounded-md border shadow-lg w-[700px]">
+    <div className="mt-4 p-5 bg-white rounded-md border shadow-lg w-[600px]">
       <div className="flex gap-2 pb-3 border-b">
         <Image height={70} width={70} alt="profile" src={personaImage} />
         <div>

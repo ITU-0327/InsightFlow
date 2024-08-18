@@ -1,6 +1,6 @@
 import React from "react";
 import { MessageCard } from "./MessageCard";
-import { Message } from "../page";
+import { Message } from "../Chatbox";
 
 type ChatWindowProps = {
   messages: Message[];
