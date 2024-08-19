@@ -1,13 +1,35 @@
-# InsightFlow
+#### **Inspiration**
+The idea for InsightFlow was born out of the challenges Product Managers face daily: analyzing vast amounts of qualitative data from user research, which is often scattered across multiple sources. This not only consumes a significant amount of time but also makes onboarding new team members a lengthy process due to the fragmented data landscape. Furthermore, getting timely and accurate feedback on product features can be difficult, making it hard to gauge their impact.
 
-InsightFlow is an innovative web application designed for VicHack2024, aimed at revolutionizing how product managers and UI/UX designers understand and enhance user experience. Our platform seamlessly integrates diverse qualitative data sources, using advanced AI algorithms to extract key themes and generate dynamic user personas. The unique feature of our application is the interactive persona chat, allowing users to engage in simulated conversations with AI-powered personas for deeper insights. This functionality extends to prototype feedback simulation, enabling rapid iteration and improvement. By automating qualitative data analysis, providing nuanced user insights, and offering an interactive platform for testing ideas, InsightFlow stands out as a comprehensive solution for user-centric product development. It saves time, drives data-informed decisions, and helps align teams around a shared understanding of user needs, making it an invaluable tool for businesses seeking to elevate their product design and development processes.
+InsightFlow is a latform designed to streamline the process of user research by automating the analysis of qualitative data. Unlike traditional methods that require hours of manual effort to organize, cluster, and analyze feedback, InsightFlow leverages LLM & Machine learning to transform raw data into meaningful insights quickly and efficiently. By reducing the time spent on tedious tasks, InsightFlow empowers founders , product managers and designers to make data driven decisions to build the next big thing!
 
-## Demo
+#### **What We Learned**
+In developing InsightFlow, we explored advanced data clustering techniques with K-means, natural language processing, and Retrieval-Augmented Generation (RAG). We uncovered the potential of AI to organize unstructured data into meaningful themes, drastically reducing the manual effort typically involved in data analysis.
+
+#### **How We Built It**
+InsightFlow was built using a combination of modern web technologies and AI frameworks. The backend was developed using Python, leveraging the LlamaIndex and OpenAI to process and analyze data. We integrated Supabase as our database solution to store and manage project data efficiently. The frontend was crafted with Next.JS, providing a responsive and user-friendly interface. Magic UI was employed to enhance the visual appeal and user experience.
+
+Uploaded files are first ingested into Supabase's Vector Database, with automatic metadata extraction using LlamaIndex. These text chunks are then fed into our clustering pipeline to generate themes and personas, with labels assigned by large language models (LLMs). For the chat feature, we employ RAG and prompt engineering techniques, optimized with reranking to choose the best sources for responses. Refer to our architecture diagrams for a high-level overview.
+
+#### **Challenges We Faced**
+Clustering and data ingestion were initially slow, leading to poor user experience. To address this, we implemented asynchronous processes and multithreading to speed things up, and introduced Server-Sent Events (SSE) for real-time server-to-client communication. Although the backend isn't deployed yet due to time constraints, this is an area we wish we had tackled earlier.
+
+---
+
+**Built With:**
+- **Languages:** Python, JavaScript
+- **Frameworks:** Next.JS, LlamaIndex, FastAPI
+- **Platforms:** Supabase (Authentication, PostgreSQL Database, Vector Database)
+- **APIs:** OpenAI
+- **Cloud Services:** AWS (Hosting, S3-compatible Storage)
+- **UI Libraries:** Magic UI
+
+---
 
 ### Video Demo
 
-[![InsightFlow Demo](https://img.youtube.com/vi/1Q1Z9Z9Z9Z9/0.jpg)](https://www.youtube.com/watch?v=1Q1Z9Z9Z9Z9)
+[Video Demo](https://youtu.be/_GWPIZEDfsk)
 
-### Live Demo
+### DevPost Page
 
-[InsightFlow](https://insightflow.herokuapp.com/)
+[InsightFlow](https://devpost.com/software/insightflow)

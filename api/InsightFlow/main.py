@@ -1,7 +1,13 @@
-from typing import Dict, Optional
+import nltk
+import os
+
+nltk.data.path.append(os.path.join(os.getcwd(), "nltk_data"))
+from nltk.corpus import wordnet
+
+wordnet.ensure_loaded()
+
 from llama_index.readers.file import PDFReader
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from tempfile import NamedTemporaryFile
 from supabase import create_client, Client
