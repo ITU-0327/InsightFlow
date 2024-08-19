@@ -21,7 +21,7 @@ ENV NLTK_DATA=/app/nltk_data
 COPY . .
 
 # Expose the port the app runs on
-EXPOSE 8000
+EXPOSE 10000
 
 # Command to run the application
-CMD ["gunicorn", "-w", "2", "-k", "uvicorn.workers.UvicornWorker", "InsightFlow.main:app", "--bind", "0.0.0.0:8000"]
+CMD ["gunicorn", "-w", "2", "-k", "uvicorn.workers.UvicornWorker", "InsightFlow.main:app", "--bind", "0.0.0.0:10000"]
