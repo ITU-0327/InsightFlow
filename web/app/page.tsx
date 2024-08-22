@@ -1,12 +1,8 @@
-import DeployButton from "../components/DeployButton";
-import AuthButton from "../components/AuthButton";
 import { createClient } from "@/utils/supabase/server";
-import ConnectSupabaseSteps from "@/components/tutorial/ConnectSupabaseSteps";
-import SignUpUserSteps from "@/components/tutorial/SignUpUserSteps";
-import Header from "@/components/Header";
-import { permanentRedirect } from "next/navigation";
-import { Cover } from "@/components/ui/cover";
+
 import Hero from "./components/Hero";
+import { NavBar } from "./components/Navbar";
+import { AuroraBackground } from "@/components/ui/aurora-background";
 
 export default async function Index() {
   const canInitSupabaseClient = () => {
@@ -24,7 +20,20 @@ export default async function Index() {
 
   return (
     <div className="flex-1 w-full flex flex-col gap-20 items-center">
+      <AuroraBackground
+        className="fixed left-0 top-0 -z-10 h-full w-full"
+        showRadialGradient={true}
+      />
+      <NavBar
+        tabs={[
+          { name: "Demo", link: "#demo" },
+          { name: "Features", link: "#features" },
+          { name: "FAQ", link: "#faq" },
+          { name: "Waiting List", link: "#waitinglist" },
+        ]}
+      />
       <Hero />
+      <div>textttt</div>
     </div>
   );
 }
