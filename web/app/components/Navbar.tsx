@@ -45,7 +45,6 @@ export const NavBar: React.FC<{ tabs: NavItem[] }> = ({ tabs }) => {
       index: defaultSelectedTabIndex,
     }));
   }, []);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: -20 }} // Start with opacity 0 and positioned 50px above

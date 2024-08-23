@@ -1,8 +1,21 @@
 import { createClient } from "@/utils/supabase/server";
-
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
+import { CustomEase } from "gsap/CustomEase";
+import { RoughEase, ExpoScaleEase, SlowMo } from "gsap/EasePack";
+import { Flip } from "gsap/Flip";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Observer } from "gsap/Observer";
+import { ScrollToPlugin } from "gsap/ScrollToPlugin";
+import { Draggable } from "gsap/Draggable";
+import { MotionPathPlugin } from "gsap/MotionPathPlugin";
+import { EaselPlugin } from "gsap/EaselPlugin";
+import { PixiPlugin } from "gsap/PixiPlugin";
+import { TextPlugin } from "gsap/TextPlugin";
 import Hero from "./components/Hero";
 import { NavBar } from "./components/Navbar";
 import { AuroraBackground } from "@/components/ui/aurora-background";
+import ScrollTrailer from "./components/Trailer";
 
 export default async function Index() {
   const canInitSupabaseClient = () => {
@@ -17,6 +30,22 @@ export default async function Index() {
   };
   // permanentRedirect("/dashboard");
   const isSupabaseConnected = canInitSupabaseClient();
+  gsap.registerPlugin(
+    useGSAP,
+    Flip,
+    ScrollTrigger,
+    Observer,
+    ScrollToPlugin,
+    Draggable,
+    MotionPathPlugin,
+    EaselPlugin,
+    PixiPlugin,
+    TextPlugin,
+    RoughEase,
+    ExpoScaleEase,
+    SlowMo,
+    CustomEase
+  );
 
   return (
     <div className="flex-1 w-full flex flex-col gap-20 items-center">
@@ -33,7 +62,7 @@ export default async function Index() {
         ]}
       />
       <Hero />
-      <div>textttt</div>
+      <ScrollTrailer />
     </div>
   );
 }

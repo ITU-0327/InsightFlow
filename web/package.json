@@ -6,6 +6,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@gsap/react": "^2.1.1",
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-icons": "^1.3.0",
     "@radix-ui/react-label": "^2.1.0",
@@ -20,6 +21,7 @@
     "axios": "^1.7.4",
     "class-variance-authority": "^0.7.0",
     "geist": "^1.2.1",
+    "gsap": "^3.12.5",
     "lucide-react": "^0.427.0",
     "next": "^14.2.5",
     "postcss": "8.4.33",
