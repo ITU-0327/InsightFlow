@@ -23,7 +23,7 @@ const Hero = () => {
           Turn your user surveys , feedback , reviews and interviews into
           actionable insights instantly
         </div>
-        <div className="text-lg text-neutral-700 font-light mt-20 flex flex-col items-center gap-6">
+        <div className="text-xl text-neutral-700 font-light mt-20 flex flex-col items-center gap-6">
           <p>Find out how</p>
           <IconArrowDown className="animate-bounce" />
         </div>

@@ -16,6 +16,7 @@ import Hero from "./components/Hero";
 import { NavBar } from "./components/Navbar";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import ScrollTrailer from "./components/Trailer";
+import Demo from "./components/Demo";
 
 export default async function Index() {
   const canInitSupabaseClient = () => {
@@ -63,6 +64,7 @@ export default async function Index() {
       />
       <Hero />
       <ScrollTrailer />
+      <Demo />
     </div>
   );
 }
