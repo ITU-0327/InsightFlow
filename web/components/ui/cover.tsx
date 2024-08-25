@@ -38,7 +38,7 @@ export const Cover = ({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       ref={ref}
-      className="relative hover:bg-neutral-700 hover:text-purple-500 group/cover inline-block dark:bg-neutral-900 bg-neutral-100 px-2 py-2  transition duration-100 rounded-sm"
+      className="relative hover:bg-indigo-900 hover:text-purple-500 group/cover inline-block dark:bg-neutral-900 bg-neutral-100 px-2 py-2  transition duration-100 rounded-sm"
     >
       <AnimatePresence>
         {hovered && (
@@ -131,7 +131,7 @@ export const Cover = ({
           },
         }}
         className={cn(
-          "dark:text-white inline-block text-neutral-900 relative z-20 group-hover/cover:text-purple-100 transition duration-200",
+          "dark:text-white inline-block text-indigo-900 relative z-20 group-hover/cover:text-purple-100 transition duration-200",
           className
         )}
       >
@@ -220,7 +220,7 @@ export const CircleIcon = ({
   return (
     <div
       className={cn(
-        `pointer-events-none animate-pulse group-hover/cover:hidden group-hover/cover:opacity-100 group h-2 w-2 rounded-full bg-neutral-600 dark:bg-white opacity-20 group-hover/cover:bg-white`,
+        `pointer-events-none animate-pulse group-hover/cover:hidden group-hover/cover:opacity-100 group h-2 w-2 rounded-full bg-purple-600 dark:bg-white opacity-20 group-hover/cover:bg-white`,
         className
       )}
     ></div>

@@ -114,10 +114,10 @@ export default function ScrollTrailer() {
         </div>
         <div className="icons">
           <Image
-            src="/icons/google-play-4.svg"
+            src="/icons/gong.svg"
             width={150}
             height={100}
-            alt="Google Play"
+            alt="Gong"
             className="mt-[20px]"
           />
         </div>
@@ -167,7 +167,7 @@ export default function ScrollTrailer() {
           />
         </div>
 
-        <div className="result opacity-0 absolute text-neutral-600 w-screen flex justify-around">
+        <div className="result opacity-0 absolute h-8/12 text-neutral-600 w-screen flex justify-around">
           <div className="text-center text-2xl font-light text-neutral-600 mb-10">
             And know what your users
             <i className="text-purple-700 mx-2 font-medium">really</i> want.
