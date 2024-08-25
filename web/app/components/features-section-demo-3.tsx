@@ -38,7 +38,7 @@ export default function FeaturesSectionDemo() {
   ];
   return (
     <div
-      className="relative z-20 py-20 lg:p-20 max-w-7xl mx-auto bg-gradient-to-b from-white via-neutral-100 to-transparent rounded-t-2xl "
+      className="relative z-20 py-20 lg:p-20 max-w-6xl mx-auto bg-gradient-to-b from-white via-neutral-100 to-transparent rounded-t-2xl "
       id="features"
     >
       <div className="px-8">

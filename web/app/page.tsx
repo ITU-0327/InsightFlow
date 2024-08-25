@@ -5,6 +5,9 @@ import { AuroraBackground } from "@/components/ui/aurora-background";
 import ScrollTrailer from "./components/Trailer";
 import Demo from "./components/Demo";
 import FeaturesSectionDemo from "./components/features-section-demo-3";
+import { Faq } from "./components/FAQSection";
+import GetStarted from "./components/GetStarted";
+import Footer from "./components/Footer";
 
 export default async function Index() {
   const canInitSupabaseClient = () => {
@@ -31,13 +34,16 @@ export default async function Index() {
           { name: "Demo", link: "#demo" },
           { name: "Features", link: "#features" },
           { name: "FAQ", link: "#faq" },
-          { name: "Waiting List", link: "#waitinglist" },
+          { name: "Waiting List", link: "#waitlist" },
         ]}
       />
       <Hero />
       <ScrollTrailer />
       <Demo />
+      <GetStarted />
       <FeaturesSectionDemo />
+      <Faq />
+      <Footer />
     </div>
   );
 }
