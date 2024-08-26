@@ -1,4 +1,7 @@
 import type { Config } from "tailwindcss";
+const {
+  default: flattenColorPalette,
+} = require("tailwindcss/lib/util/flattenColorPalette");
 
 const config = {
   darkMode: ["class"],
@@ -59,6 +62,10 @@ const config = {
         sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
+        sparkle: {
+          "0%, 100%": { opacity: "0.75", scale: "0.9" },
+          "50%": { opacity: "1", scale: "1" },
+        },
         "accordion-down": {
           from: { height: "0" },
           to: { height: "var(--radix-accordion-content-height)" },
@@ -66,6 +73,26 @@ const config = {
         "accordion-up": {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
+        },
+        "pop-blob": {
+          "0%": { transform: "scale(1)" },
+          "33%": { transform: "scale(1.2)" },
+          "66%": { transform: "scale(0.8)" },
+          "100%": { transform: "scale(1)" },
+        },
+        colors: {
+          filter: {
+            "blur-20": "blur(20px)",
+            "blur-25": "blur(25px)",
+          },
+        },
+        aurora: {
+          from: {
+            backgroundPosition: "50% 50%, 50% 50%",
+          },
+          to: {
+            backgroundPosition: "350% 50%, 350% 50%",
+          },
         },
         shimmer: {
           from: {
@@ -83,12 +110,25 @@ const config = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        shimmer: "shimmer 1.25s ease-out infinite",
+        shimmer: "shimmer 2s ease-out infinite",
         grid: "grid 15s linear infinite",
+        aurora: "aurora 60s linear infinite",
+        sparkle: "sparkle 2s ease-in-out infinite",
+        "pop-blob": "pop-blob 8s infinite",
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"), addVariablesForColors],
 } satisfies Config;
 
 export default config;
+function addVariablesForColors({ addBase, theme }: any) {
+  let allColors = flattenColorPalette(theme("colors"));
+  let newVars = Object.fromEntries(
+    Object.entries(allColors).map(([key, val]) => [`--${key}`, val])
+  );
+
+  addBase({
+    ":root": newVars,
+  });
+}
