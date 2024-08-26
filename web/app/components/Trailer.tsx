@@ -100,7 +100,7 @@ export default function ScrollTrailer() {
         Analyse accross multiple feedback channels , cut through the noise ...
       </div>
       <div
-        className="section mx-auto w-[80%] h-[300px] flex gap-3 justify-around items-center"
+        className="section mx-auto w-[80%] h-[300px] flex gap-3 justify-around items-center flex-wrap"
         ref={main as RefObject<HTMLDivElement>}
       >
         <div className="icons">
@@ -167,12 +167,12 @@ export default function ScrollTrailer() {
           />
         </div>
 
-        <div className="result opacity-0 absolute h-8/12 text-neutral-600 w-screen flex justify-around">
+        <div className="result opacity-0 absolute h-8/12 text-neutral-600 w-screen flex justify-around mb-5">
           <div className="text-center text-2xl font-light text-neutral-600 mb-10">
             And know what your users
             <i className="text-purple-700 mx-2 font-medium">really</i> want.
           </div>
-          <div className="flex w-8/12 mx-auto">
+          <div className="flex w-9/12 mx-auto flex-col lg:justify-stretch lg:flex-row md:flex-col sm:items-center">
             <NoteCard
               note={{
                 note: "User finds icons confusing",

@@ -4,7 +4,7 @@ import { NavBar } from "./components/Navbar";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import ScrollTrailer from "./components/Trailer";
 import Demo from "./components/Demo";
-import FeaturesSectionDemo from "./components/features-section-demo-3";
+import FeaturesSectionDemo from "./components/features-section";
 import { Faq } from "./components/FAQSection";
 import GetStarted from "./components/GetStarted";
 import Footer from "./components/Footer";

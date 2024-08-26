@@ -5,7 +5,6 @@ import ShinyButton from "@/components/ShinyButton";
 import Logo from "@/components/ui/logo";
 import React, { FormEvent, useState } from "react";
 import { handleWaitlistSubmission } from "../wailtlist.actions";
-import Confetti from "react-confetti";
 import { ConfettiButton } from "@/components/magicui/confetti";
 
 const Waitlist = () => {
@@ -36,14 +35,14 @@ const Waitlist = () => {
         <div className="font-medium text-xl text-purple-800">
           Be part of our journey <br />
         </div>
-        <div className="text-xl text-center flex p-2 mb-6 text-indigo-800">
+        <div className="text-xl text-center flex p-2 mb-6 text-indigo-800 flex-wrap mx-auto justify-center">
           Join the waitlist and build{" "}
           <Logo className="flex justify-center mr-3" />
           {"  "}
           together!
         </div>
         <form
-          className="w-full max-w-md"
+          className="w-full max-w-sm"
           onSubmit={(e: FormEvent) => {
             e.preventDefault();
             const formData = new FormData(e.target as HTMLFormElement);

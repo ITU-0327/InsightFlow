@@ -72,7 +72,7 @@ export const NavBar: React.FC<{ tabs: NavItem[] }> = ({ tabs }) => {
               }));
             }}
             className={twMerge(
-              "cursor-pointer p-3 font-medium transition-colors duration-200 flex items-center justify-center rounded-full h-fit px-2 py-2 text-nowrap",
+              "cursor-pointer p-3 md:font-medium sm:font-light transition-colors duration-200 flex items-center justify-center rounded-full h-fit px-2 py-2 text-nowrap md:text-lg text-xs sm:text-sm",
               currentLink.index === i && "dark:text-neutral-900 text-white",
               fired.current
                 ? ""

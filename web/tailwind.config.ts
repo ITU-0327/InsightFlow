@@ -110,7 +110,7 @@ const config = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        shimmer: "shimmer 3s ease-out infinite",
+        shimmer: "shimmer 2s ease-out infinite",
         grid: "grid 15s linear infinite",
         aurora: "aurora 60s linear infinite",
         sparkle: "sparkle 2s ease-in-out infinite",
