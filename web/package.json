@@ -27,6 +27,7 @@
     "lucide-react": "^0.427.0",
     "next": "^14.2.5",
     "postcss": "8.4.33",
+    "posthog-js": "^1.157.2",
     "react": "18.2.0",
     "react-confetti": "^6.1.0",
     "react-dom": "18.2.0",
