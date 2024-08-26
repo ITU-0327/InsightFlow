@@ -30,8 +30,3 @@ jobs:
           file: ./api/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/insight-flow:latest
-
-      - name: Deploy to Render
-        if: success()
-        run: |
-          curl -X POST "https://api.render.com/deploy/${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_DEPLOY_KEY }}"
