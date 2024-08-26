@@ -37,32 +37,34 @@ export default function FeaturesSectionDemo() {
     },
   ];
   return (
-    <div
-      className="relative z-20 py-20 lg:p-20 max-w-6xl mx-auto bg-gradient-to-b from-white via-neutral-100 to-transparent rounded-t-2xl "
-      id="features"
-    >
-      <div className="px-8">
-        <h4 className="text-3xl lg:text-5xl lg:leading-tight max-w-5xl mx-auto text-center tracking-tight font-medium text-black dark:text-white">
-          Features
-        </h4>
+    <div className="bg-gradient-to-b from-purple-100 to-transparent p-1 rounded-2xl ">
+      <div
+        className="relative z-20 py-20 lg:p-20 max-w-6xl mx-auto bg-gradient-to-b from-white via-neutral-100 to-transparent rounded-t-2xl backdrop-blur-sm"
+        id="features"
+      >
+        <div className="px-8">
+          <h4 className="text-3xl lg:text-5xl lg:leading-tight max-w-5xl mx-auto text-center tracking-tight font-medium text-black dark:text-white">
+            Features
+          </h4>
 
-        <p className="text-sm lg:text-base  max-w-2xl  my-4 mx-auto text-neutral-600 text-center font-normal dark:text-neutral-300">
-          InsightFlow transforms user research into powerful insights. From
-          automated summaries and tagging to AI-driven personas and instant data
-          analysis, it’s all here. Engage with your data effortlessly and get
-          the insights you need, <i>faster</i>.
-        </p>
-      </div>
+          <p className="text-sm lg:text-base  max-w-2xl  my-4 mx-auto text-neutral-600 text-center font-normal dark:text-neutral-300">
+            InsightFlow transforms user research into powerful insights. From
+            automated summaries and tagging to AI-driven personas and instant
+            data analysis, it’s all here. Engage with your data effortlessly and
+            get the insights you need, <i>faster</i>.
+          </p>
+        </div>
 
-      <div className="relative ">
-        <div className="grid grid-cols-1 lg:grid-cols-6 mt-12 shadow-sm rounded-sm dark:border-neutral-800">
-          {features.map((feature) => (
-            <FeatureCard key={feature.title} className={feature.className}>
-              <FeatureTitle>{feature.title}</FeatureTitle>
-              <FeatureDescription>{feature.description}</FeatureDescription>
-              <div className=" h-full w-full">{feature.skeleton}</div>
-            </FeatureCard>
-          ))}
+        <div className="relative ">
+          <div className="grid grid-cols-1 lg:grid-cols-6 mt-12 shadow-sm rounded-sm dark:border-neutral-800">
+            {features.map((feature) => (
+              <FeatureCard key={feature.title} className={feature.className}>
+                <FeatureTitle>{feature.title}</FeatureTitle>
+                <FeatureDescription>{feature.description}</FeatureDescription>
+                <div className=" h-full w-full">{feature.skeleton}</div>
+              </FeatureCard>
+            ))}
+          </div>
         </div>
       </div>
     </div>

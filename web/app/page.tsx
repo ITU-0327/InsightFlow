@@ -8,6 +8,7 @@ import FeaturesSectionDemo from "./components/features-section-demo-3";
 import { Faq } from "./components/FAQSection";
 import GetStarted from "./components/GetStarted";
 import Footer from "./components/Footer";
+import Waitlist from "./components/Waitlist";
 
 export default async function Index() {
   const canInitSupabaseClient = () => {
@@ -42,6 +43,7 @@ export default async function Index() {
       <Demo />
       <GetStarted />
       <FeaturesSectionDemo />
+      <Waitlist />
       <Faq />
       <Footer />
     </div>
