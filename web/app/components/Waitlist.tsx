@@ -29,7 +29,7 @@ const Waitlist = () => {
     <div className="relative h-screen" id="waitlist">
       <MagicBlob />
       <div className="flex flex-col items-center h-full justify-center max-w-xl text-center">
-        <h2 className="text-5xl md:text-5xl font-bold text-transparent mb-6 bg-clip-text bg-gradient-to-bl from-indigo-900 via-purple-600 to-purple-800">
+        <h2 className="text-5xl md:text-5xl font-bold text-transparent mb-6 bg-clip-text bg-gradient-to-br from-purple-800 via-purple-600 to-purple-800">
           Join the Waitlist
         </h2>
         <div className="font-medium text-xl text-purple-800">

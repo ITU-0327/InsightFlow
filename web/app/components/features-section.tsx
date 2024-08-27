@@ -39,7 +39,7 @@ export default function FeaturesSectionDemo() {
   return (
     <div className="bg-gradient-to-b from-purple-100 to-transparent p-1 rounded-2xl lg:max-w-7xl md:max-w-4xl md:mx-5">
       <div
-        className="relative z-20 py-20 lg:p-10 md:p-10 max-w-6xl mx-auto bg-gradient-to-b from-white via-neutral-100 to-transparent rounded-t-2xl backdrop-blur-sm"
+        className="relative z-20 py-20 lg:p-15 md:p-20 max-w-6xl mx-auto bg-gradient-to-b from-white via-gray-100 to-white rounded-2xl backdrop-blur-lg"
         id="features"
       >
         <div className="px-8">
