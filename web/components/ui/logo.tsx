@@ -2,9 +2,9 @@ import { cn } from "@/lib/utils";
 import { IconInfinity, IconSparkles } from "@tabler/icons-react";
 import React from "react";
 
-const Logo = ({ size = 30, className = "" }) => {
+const Logo = ({ size = 30, className = "", textClassName = "" }) => {
   return (
-    <div className={cn("flex", className)}>
+    <div className={cn("flex items-center", className)}>
       <div>
         <IconInfinity className="mx-1 text-indigo-700" size={size} />
       </div>
@@ -13,9 +13,7 @@ const Logo = ({ size = 30, className = "" }) => {
         <h1
           className={cn(
             "mr-1 font-semibold text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-purple-500",
-            {
-              [`text-${size === 30 ? "xl" : "base"}`]: true, // Adjusts the text size based on icon size
-            }
+            textClassName
           )}
         >
           InsightFlow
