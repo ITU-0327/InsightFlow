@@ -5,7 +5,7 @@ export const Faq = () => (
     className="flex flex-col items-center gap-5 w-full max-w-[850px] justify-center"
     id="faq"
   >
-    <h1 className="font-semibold text-4xl text-center">
+    <h1 className="font-semibold text-gray-700 text-3xl sm:text-4xl text-center">
       Frequently Asked Questions
     </h1>
     <div className="w-full">

@@ -172,7 +172,7 @@ export default function ScrollTrailer() {
             And know what your users
             <i className="text-purple-700 mx-2 font-medium">really</i> want.
           </div>
-          <div className="flex w-9/12 mx-auto flex-col lg:justify-stretch lg:flex-row md:flex-col sm:items-center">
+          <div className="flex w-9/12 mx-auto flex-col lg:justify-center lg:flex-row md:flex-col sm:items-center">
             <NoteCard
               note={{
                 note: "User finds icons confusing",

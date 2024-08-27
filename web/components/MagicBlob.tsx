@@ -14,20 +14,20 @@ export default function MagicBlob({
       <div className="relative w-full max-w-lg">
         <div
           className={cn(
-            "absolute left-72 top-[96px] h-72 w-72 animate-pop-blob rounded-sm bg-purple-300 p-8 opacity-55 mix-blend-multiply blur-3xl filter",
+            "absolute left-1/2 top-24 transform -translate-x-1/2 sm:left-72 sm:top-[96px] h-48 w-48 sm:h-72 sm:w-72 animate-pop-blob rounded-sm bg-purple-300 p-8 opacity-55 mix-blend-multiply blur-3xl filter",
             className,
             secondBlobColor
           )}
         ></div>
         <div
           className={cn(
-            "absolute left-20 -top-[96px] h-72 w-72 animate-pop-blob rounded-sm bg-blue-300 p-8 opacity-55 mix-blend-multiply blur-3xl filter"
+            "absolute left-1/2 top-0 transform -translate-x-1/2 sm:left-20 sm:-top-[96px] h-48 w-48 sm:h-72 sm:w-72 animate-pop-blob rounded-sm bg-blue-300 p-8 opacity-55 mix-blend-multiply blur-3xl filter"
           )}
         ></div>
 
         <div
           className={cn(
-            "absolute  right-20 top-96 h-72 w-72 animate-pop-blob rounded-sm bg-purple-300 p-8 opacity-55 mix-blend-multiply blur-3xl filter"
+            "absolute left-1/2 top-64 transform -translate-x-1/2 sm:right-20 sm:top-96 h-48 w-48 sm:h-72 sm:w-72 animate-pop-blob rounded-sm bg-purple-300 p-8 opacity-55 mix-blend-multiply blur-3xl filter"
           )}
         ></div>
       </div>
