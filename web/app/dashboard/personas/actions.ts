@@ -1,3 +1,4 @@
+"use server";
 import { useClientConfig } from "../hooks/use-config";
 
 export interface Persona {
@@ -11,11 +12,11 @@ export interface Persona {
   motivations: string;
   key_notes: string;
 }
+const { backend } = useClientConfig();
 
 export const getPersonas = async (
   project_id: string = "PROJECT_ID_NOT_DEFINED"
 ): Promise<Persona[]> => {
-  const { backend } = useClientConfig();
   try {
     const response = await fetch(
       `${backend}/projects/${project_id}/personas/`,

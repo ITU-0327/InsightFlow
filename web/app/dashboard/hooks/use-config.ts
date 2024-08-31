@@ -20,6 +20,7 @@ export function useClientConfig(): ChatConfig {
   //       .catch((error) => console.error("Error fetching config", error));
   //   }, [chatAPI, configAPI]);
   return {
-    backend: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api",
+    backend:
+      process.env.BACKEND_API_BASE_URL_DEV || "http://localhost:8000/api",
   };
 }
