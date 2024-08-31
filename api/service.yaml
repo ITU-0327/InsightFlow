@@ -1,0 +1,12 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: insightflow-fastapi-service
+spec:
+  template:
+    spec:
+      containers:
+        - image: us-central1-docker.pkg.dev/insightflow-fastapi/insightflow-fastapi/insightflow-fastapi:latest
+          env:
+          ports:
+            - containerPort: 10000
