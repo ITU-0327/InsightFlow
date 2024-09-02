@@ -17,7 +17,9 @@ export const getProjectInsights = async (
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          "Cache-Control": "force-cache",
         },
+        cache: "force-cache",
       }
     );
 

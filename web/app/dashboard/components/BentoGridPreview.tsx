@@ -1,12 +1,4 @@
-"use client";
-import {
-  BellIcon,
-  CalendarIcon,
-  ChatBubbleIcon,
-  FileTextIcon,
-  GlobeIcon,
-  InputIcon,
-} from "@radix-ui/react-icons";
+import { ChatBubbleIcon, InputIcon } from "@radix-ui/react-icons";
 import Image from "next/image";
 
 import { BentoCard } from "@/components/magicui/bento-grid";

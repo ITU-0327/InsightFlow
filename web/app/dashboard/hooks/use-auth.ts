@@ -2,13 +2,14 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 interface AuthData {
   userId: string;
   email: string | undefined;
 }
 
-export const useAuth = async (): Promise<AuthData | void> => {
+export const useAuth = cache(async (): Promise<AuthData | void> => {
   const supabase = createClient();
 
   // Get the authenticated user
@@ -27,4 +28,4 @@ export const useAuth = async (): Promise<AuthData | void> => {
     userId: user.id,
     email: user.email,
   };
-};
+});

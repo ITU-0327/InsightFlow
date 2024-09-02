@@ -4,6 +4,7 @@ import { Project } from "@/models/Project";
 import { useClientConfig } from "./hooks/use-config";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 export const logOut = async (): Promise<void> => {
   "use server";
@@ -20,7 +21,9 @@ export const getProjects = async (
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        "Cache-Control": "force-cache",
       },
+      cache: "force-cache",
     });
 
     if (!response.ok) {

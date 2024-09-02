@@ -14,7 +14,9 @@ export const getProjectFiles = async (
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        "Cache-Control": "force-cache",
       },
+      cache: "force-cache",
     });
 
     if (!response.ok) {
@@ -53,6 +55,9 @@ export const deleteProjectFile = async (
   }
 };
 
-export const getFileDownloadUrl = async (projectId: string, fileName: string) => {
+export const getFileDownloadUrl = async (
+  projectId: string,
+  fileName: string
+) => {
   return `${backend}/projects/${projectId}/files/${fileName}/download/`;
 };
