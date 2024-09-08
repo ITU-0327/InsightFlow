@@ -167,13 +167,26 @@ class VectorDBInteractor:
         streaming_response = query_engine.query(query)
         return streaming_response
 
-    def get_base_query(self, project_id: str):
+    def get_base_query_with_vec(self, project_id: str):
         base_query = (
             self.supabase_client
             .schema("vecs")
             .from_(project_id)
             .select(
                 "id, vec, theme, cluster_id, persona_id, "
+                "metadata->>note, metadata->tags, metadata->theme, metadata->persona_id, "
+                "metadata->>file_name, metadata->>suitable_for_persona, metadata->_node_content"
+            )
+        )
+        return base_query
+
+    def get_base_query(self, project_id: str):
+        base_query = (
+            self.supabase_client
+            .schema("vecs")
+            .from_(project_id)
+            .select(
+                "id, theme, cluster_id, persona_id, "
                 "metadata->>note, metadata->tags, metadata->theme, metadata->persona_id, "
                 "metadata->>file_name, metadata->>suitable_for_persona, metadata->_node_content"
             )

@@ -46,7 +46,7 @@ class ClusteringPipeline:
 
     def _load_data(self, project_id, suitable_for_persona=None):
         print("loading data")
-        query = self.vector_db_interactor.get_base_query(project_id)
+        query = self.vector_db_interactor.get_base_query_with_vec(project_id)
         if suitable_for_persona is not None:
             query = query.eq("metadata->suitable_for_persona", suitable_for_persona)
 
