@@ -1,3 +1,6 @@
+# Demo
+https://insight-flow-xi.vercel.app/
+
 #### **Inspiration**
 The idea for InsightFlow was born out of the challenges Product Managers face daily: analyzing vast amounts of qualitative data from user research, which is often scattered across multiple sources. This not only consumes a significant amount of time but also makes onboarding new team members a lengthy process due to the fragmented data landscape. Furthermore, getting timely and accurate feedback on product features can be difficult, making it hard to gauge their impact.
 
